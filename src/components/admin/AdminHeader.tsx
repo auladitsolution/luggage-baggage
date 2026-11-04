@@ -13,12 +13,14 @@ import {
 } from "lucide-react";
 import { formatBDT } from "@/lib/utils";
 import { STORE_INFO } from "@/lib/config/storeInfo";
+import { useShopSettings } from "@/context/ShopSettingsContext";
 
 interface AdminHeaderProps {
   onToggleSidebar: () => void;
 }
 
 export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
+  const { settings } = useShopSettings();
   return (
     <header className="h-16 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs">
       <div className="flex items-center gap-3">
@@ -32,14 +34,14 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
         </button>
 
         <div className="lg:hidden flex items-center gap-2">
-          <img src="/logo.png" alt={STORE_INFO.name} className="w-7 h-7 object-contain rounded-lg border border-slate-200 bg-white" />
-          <span className="font-bold text-xs text-brand-navy">{STORE_INFO.name}</span>
+          <img src="/logo.png" alt={settings.name} className="w-7 h-7 object-contain rounded-lg border border-slate-200 bg-white" />
+          <span className="font-bold text-xs text-brand-navy">{settings.name}</span>
         </div>
 
         {/* Store Active Indicator */}
         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-teal-50 border border-teal-200 text-xs text-brand-teal font-medium">
           <span className="w-2 h-2 rounded-full bg-brand-teal animate-pulse" />
-          <span>দোকান শাখা: <strong>{STORE_INFO.name} ({STORE_INFO.shortAddress})</strong></span>
+          <span>দোকান শাখা: <strong>{settings.name} ({settings.shortAddress})</strong></span>
         </div>
       </div>
 

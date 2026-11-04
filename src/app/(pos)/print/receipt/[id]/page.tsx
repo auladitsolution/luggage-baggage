@@ -6,6 +6,7 @@ import { Printer, ArrowLeft, RefreshCw } from "lucide-react";
 import { formatBDT, toBengaliNumber } from "@/lib/utils";
 import { generateBarcodeSVG } from "@/lib/barcode/code128";
 import { STORE_INFO } from "@/lib/config/storeInfo";
+import { useShopSettings } from "@/context/ShopSettingsContext";
 
 export default function ReceiptPrintPage({
   params,
@@ -14,6 +15,7 @@ export default function ReceiptPrintPage({
 }) {
   const resolvedParams = use(params);
   const invoiceId = resolvedParams.id;
+  const { settings } = useShopSettings();
   const [format, setFormat] = useState<"80mm" | "58mm" | "a4">("80mm");
   const [invoice, setInvoice] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -129,15 +131,15 @@ export default function ReceiptPrintPage({
           <div className="receipt-80mm bg-white p-4 shadow-md rounded-xl max-w-[80mm] w-full text-slate-900 font-sans print:shadow-none print:p-1 print:max-w-none">
             {/* Header */}
             <div className="text-center border-b border-dashed border-slate-300 pb-2">
-              <img src="/logo.png" alt={STORE_INFO.name} className="w-10 h-10 mx-auto mb-1.5 object-contain" />
-              <h2 className="text-sm font-black tracking-tight">{STORE_INFO.name}</h2>
-              <p className="text-[11px] font-bold text-slate-800">{STORE_INFO.nameBangla}</p>
-              <p className="text-[10px] text-slate-600">{STORE_INFO.address}</p>
+              <img src="/logo.png" alt={settings.name} className="w-10 h-10 mx-auto mb-1.5 object-contain" />
+              <h2 className="text-sm font-black tracking-tight">{settings.name}</h2>
+              <p className="text-[11px] font-bold text-slate-800">{settings.nameBangla}</p>
+              <p className="text-[10px] text-slate-600">{settings.address}</p>
               <p className="text-[9px] text-slate-500">
-                প্রোপাইটর: {STORE_INFO.owners}
+                প্রোপাইটর: {settings.owners}
               </p>
               <p className="text-[9px] text-slate-600 font-medium">
-                মোবাইল: {STORE_INFO.mobile} • ইমেইল: {STORE_INFO.email}
+                মোবাইল: {settings.mobile} • ইমেইল: {settings.email}
               </p>
             </div>
 
@@ -215,7 +217,7 @@ export default function ReceiptPrintPage({
               />
               <p className="text-[9px] font-mono font-bold tracking-widest">{invoice.invoiceNumber}</p>
               <p className="text-[8px] text-slate-500 mt-1">
-                * বিক্রিত মাল ৭ দিনের মধ্যে ইনভয়েস সহ পরিবর্তনযোগ্য (টাকা ফেরতযোগ্য নয়) *
+                * {settings.receiptFooter || "বিক্রিত পণ্য ৭ দিনের মধ্যে মেমোসহ পরিবর্তনযোগ্য (টাকা ফেরতযোগ্য নয়)"} *
               </p>
               <p className="text-[9px] font-bold mt-1 text-slate-700">ধন্যবাদ! আবার আসবেন।</p>
             </div>
@@ -226,10 +228,10 @@ export default function ReceiptPrintPage({
         {format === "58mm" && (
           <div className="receipt-58mm bg-white p-2 shadow-md rounded-lg max-w-[58mm] w-full text-slate-900 font-sans text-[9px] leading-tight print:shadow-none print:p-0 print:max-w-none">
             <div className="text-center border-b border-dashed border-slate-400 pb-1.5">
-              <h2 className="text-xs font-black">{STORE_INFO.name}</h2>
-              <p className="text-[9px] font-bold">{STORE_INFO.nameBangla}</p>
-              <p className="text-[8px] text-slate-600">{STORE_INFO.shortAddress}</p>
-              <p className="text-[8px] text-slate-500">ফোন: {STORE_INFO.mobile}</p>
+              <h2 className="text-xs font-black">{settings.name}</h2>
+              <p className="text-[9px] font-bold">{settings.nameBangla}</p>
+              <p className="text-[8px] text-slate-600">{settings.shortAddress}</p>
+              <p className="text-[8px] text-slate-500">ফোন: {settings.mobile}</p>
             </div>
 
             <div className="py-1 border-b border-dashed border-slate-300 text-[8px] space-y-0.5">
@@ -270,7 +272,7 @@ export default function ReceiptPrintPage({
             </div>
 
             <div className="text-center pt-2 mt-1 border-t border-dashed border-slate-300 text-[7px] text-slate-500">
-              <p>৭ দিনের মধ্যে ইনভয়েস সহ পরিবর্তনযোগ্য</p>
+              <p>{settings.receiptFooter || "৭ দিনের মধ্যে মেমোসহ পরিবর্তনযোগ্য"}</p>
               <p className="font-bold text-slate-700 mt-0.5">ধন্যবাদ!</p>
             </div>
           </div>
@@ -284,20 +286,20 @@ export default function ReceiptPrintPage({
               <div className="flex items-center gap-3.5">
                 <img
                   src="/logo.png"
-                  alt={STORE_INFO.name}
+                  alt={settings.name}
                   className="w-16 h-16 object-contain rounded-xl border border-slate-200 bg-white p-1 flex-shrink-0"
                 />
                 <div>
-                  <h1 className="text-xl font-bold text-brand-navy">{STORE_INFO.name}</h1>
-                  <p className="text-sm font-semibold text-brand-teal">{STORE_INFO.nameBangla}</p>
+                  <h1 className="text-xl font-bold text-brand-navy">{settings.name}</h1>
+                  <p className="text-sm font-semibold text-brand-teal">{settings.nameBangla}</p>
                   <p className="text-slate-600 text-[11px] mt-0.5">
-                    {STORE_INFO.address}
+                    {settings.address}
                   </p>
                   <p className="text-slate-600 text-[11px]">
-                    প্রোপাইটর: <strong>{STORE_INFO.owners}</strong> • মোবাইল: <strong>{STORE_INFO.mobile}</strong>
+                    প্রোপাইটর: <strong>{settings.owners}</strong> • মোবাইল: <strong>{settings.mobile}</strong>
                   </p>
                   <p className="text-slate-500 text-[10px]">
-                    ইমেইল: {STORE_INFO.email} • ফেসবুক: {STORE_INFO.facebookPageLink}
+                    ইমেইল: {settings.email} • ফেসবুক: {settings.facebookPageLink}
                   </p>
                 </div>
               </div>

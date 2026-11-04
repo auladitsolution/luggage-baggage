@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ShopSettingsProvider } from "@/context/ShopSettingsContext";
 
 export const metadata: Metadata = {
   title: "Luggage & Baggage (লাগেজ অ্যান্ড ব্যাগেজ) | যমুনা ফিউচার পার্ক, ঢাকা",
@@ -47,7 +48,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-[#F8FAFC] text-[#0F172A] antialiased selection:bg-[#0D9488]/20 selection:text-[#0D9488]">
-        {children}
+        <ShopSettingsProvider>
+          {children}
+        </ShopSettingsProvider>
       </body>
     </html>
   );

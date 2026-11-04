@@ -20,8 +20,10 @@ import {
 import { formatBDT, toBengaliNumber } from "@/lib/utils";
 import { getCartItems, clearCart, CartItem } from "@/lib/cart";
 import { STORE_INFO } from "@/lib/config/storeInfo";
+import { useShopSettings } from "@/context/ShopSettingsContext";
 
 export default function CheckoutPage() {
+  const { settings } = useShopSettings();
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -54,8 +56,10 @@ export default function CheckoutPage() {
   }, []);
 
   const subTotalPoisha = items.reduce((sum, item) => sum + item.pricePoisha * item.quantity, 0);
+  const feeInside = (settings.deliveryFeeInsideDhaka ?? 80) * 100;
+  const feeOutside = (settings.deliveryFeeOutsideDhaka ?? 150) * 100;
   const deliveryFeePoisha =
-    items.length > 0 ? (deliveryZone === "outside_dhaka" ? 15000 : 8000) : 0;
+    items.length > 0 ? (deliveryZone === "outside_dhaka" ? feeOutside : feeInside) : 0;
   const grandTotalPoisha = subTotalPoisha + deliveryFeePoisha;
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
@@ -454,11 +458,11 @@ export default function CheckoutPage() {
                   <p className="font-bold text-brand-navy">পেমেন্ট পাঠানোর নির্দেশনা:</p>
                   <p>
                     {paymentMethod === "bkash_manual" &&
-                      `আমাদের বিকাশ মার্চেন্ট/পার্সোনাল নম্বর: ${STORE_INFO.mobile} (${STORE_INFO.name})`}
+                      `আমাদের বিকাশ মার্চেন্ট/পার্সোনাল নম্বর: ${settings.bkashNumber || settings.mobile} (${settings.name})`}
                     {paymentMethod === "nagad_manual" &&
-                      `আমাদের নগদ মার্চেন্ট/পার্সোনাল নম্বর: ${STORE_INFO.mobile} (${STORE_INFO.name})`}
+                      `আমাদের নগদ মার্চেন্ট/পার্সোনাল নম্বর: ${settings.nagadNumber || settings.mobile} (${settings.name})`}
                     {paymentMethod === "bank_manual" &&
-                      `ব্যাংক: ব্র্যাক ব্যাংক, হিসাব নাম: ${STORE_INFO.name}, হিসাব নম্বর: 15012048899001, শাখা: কুড়িল / যমুনা ফিউচার পার্ক`}
+                      `ব্যাংক: ব্র্যাক ব্যাংক, হিসাব নাম: ${settings.name}, হিসাব নম্বর: 15012048899001, শাখা: কুড়িল / যমুনা ফিউচার পার্ক`}
                   </p>
                 </div>
 

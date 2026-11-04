@@ -24,6 +24,15 @@ export async function GET(req: NextRequest) {
       const store = getMockStore();
       let filtered = [...store.products];
 
+      // Default: exclude archived products unless status is explicitly requested
+      if (status === "all") {
+        // show all
+      } else if (status) {
+        filtered = filtered.filter((p) => p.status === status);
+      } else {
+        filtered = filtered.filter((p) => p.status !== "archived");
+      }
+
       if (search) {
         const s = search.toLowerCase();
         filtered = filtered.filter(
@@ -64,7 +73,13 @@ export async function GET(req: NextRequest) {
     }
 
     const query: any = {};
-    if (status) query.status = status;
+    if (status === "all") {
+      // show all including archived
+    } else if (status) {
+      query.status = status;
+    } else {
+      query.status = { $ne: "archived" };
+    }
     if (search) {
       query.$or = [
         { nameBangla: { $regex: search, $options: "i" } },

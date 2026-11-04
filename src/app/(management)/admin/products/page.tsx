@@ -13,10 +13,16 @@ import {
   Upload,
   CheckCircle2,
   AlertCircle,
+  Edit3,
+  RotateCcw,
+  Archive,
+  Layers,
+  Sparkles,
 } from "lucide-react";
 import { formatBDT, toBengaliNumber } from "@/lib/utils";
 
 interface VariantForm {
+  _id?: string;
   nameVariant: string;
   size: string;
   color: string;
@@ -33,10 +39,18 @@ export default function AdminProductsPage() {
   const [brands, setBrands] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"active" | "archived" | "all">("active");
+
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+
+  // Target Product for Edit/Delete
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
 
   // Create Form State
   const [nameBangla, setNameBangla] = useState("");
@@ -70,11 +84,23 @@ export default function AdminProductsPage() {
     },
   ]);
 
+  // Edit Form State
+  const [editNameBangla, setEditNameBangla] = useState("");
+  const [editNameEnglish, setEditNameEnglish] = useState("");
+  const [editBrandId, setEditBrandId] = useState("");
+  const [editCategoryId, setEditCategoryId] = useState("");
+  const [editDescriptionBangla, setEditDescriptionBangla] = useState("");
+  const [editImageUrl, setEditImageUrl] = useState("");
+  const [editStatus, setEditStatus] = useState("active");
+  const [editVariants, setEditVariants] = useState<VariantForm[]>([]);
+  const [uploadingEditImage, setUploadingEditImage] = useState(false);
+
   const loadData = async () => {
     try {
       setLoading(true);
+      const queryParam = statusFilter === "all" ? "?status=all" : (statusFilter === "archived" ? "?status=archived" : "");
       const [prodRes, catRes, brandRes] = await Promise.all([
-        fetch("/api/admin/products"),
+        fetch(`/api/admin/products${queryParam}`),
         fetch("/api/admin/categories"),
         fetch("/api/admin/brands"),
       ]);
@@ -95,8 +121,9 @@ export default function AdminProductsPage() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [statusFilter]);
 
+  // Create Modal Handlers
   const handleAddVariant = () => {
     setVariants([
       ...variants,
@@ -124,13 +151,15 @@ export default function AdminProductsPage() {
     setVariants(updated);
   };
 
-  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>, isEdit = false) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
-      setUploadingImage(true);
+      if (isEdit) setUploadingEditImage(true);
+      else setUploadingImage(true);
       setErrorMsg("");
+
       const formData = new FormData();
       formData.append("file", file);
 
@@ -142,11 +171,16 @@ export default function AdminProductsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "ইমেজ আপলোড ব্যর্থ হয়েছে");
 
-      setImageUrl(data.image.secureUrl);
+      if (isEdit) {
+        setEditImageUrl(data.image.secureUrl);
+      } else {
+        setImageUrl(data.image.secureUrl);
+      }
     } catch (err: any) {
       setErrorMsg(err.message || "ইমেজ আপলোড করতে সমস্যা হয়েছে");
     } finally {
-      setUploadingImage(false);
+      if (isEdit) setUploadingEditImage(false);
+      else setUploadingImage(false);
     }
   };
 
@@ -184,7 +218,7 @@ export default function AdminProductsPage() {
           color: v.color,
           purchaseCostPoisha: Math.round((parseFloat(v.purchaseCostBDT) || 0) * 100),
           retailPricePoisha: Math.round((parseFloat(v.retailPriceBDT) || 0) * 100),
-          stock: parseInt(v.stock) || 0,
+          stock: parseInt(v.stock, 10) || 0,
           barcode: v.barcode.trim() || undefined,
           sku: v.sku.trim() || undefined,
         })),
@@ -203,7 +237,6 @@ export default function AdminProductsPage() {
 
       setSuccessMsg("পণ্য ও ভ্যারিয়েন্ট সফলভাবে তৈরি করা হয়েছে!");
       setIsModalOpen(false);
-      // Reset form
       setNameBangla("");
       setNameEnglish("");
       setDescriptionBangla("");
@@ -216,16 +249,184 @@ export default function AdminProductsPage() {
     }
   };
 
-  const handleDeleteProduct = async (id: string, name: string) => {
-    if (!confirm(`আপনি কি নিশ্চিত যে '${name}' পণ্যটি ডিলিট/আর্কাইভ করতে চান?`)) return;
+  // Edit Modal Handlers
+  const handleOpenEditModal = (prod: any) => {
+    setSelectedProduct(prod);
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    setEditNameBangla(prod.nameBangla || "");
+    setEditNameEnglish(prod.nameEnglish || "");
+    setEditBrandId(prod.brand?._id || prod.brandId?._id || prod.brandId || "");
+    setEditCategoryId(prod.category?._id || prod.categoryId?._id || prod.categoryId || "");
+    setEditDescriptionBangla(prod.descriptionBangla || "");
+    setEditImageUrl(prod.images?.[0]?.secureUrl || "");
+    setEditStatus(prod.status || "active");
+
+    const mappedVariants: VariantForm[] = (prod.variants || []).map((v: any) => ({
+      _id: v._id ? String(v._id) : undefined,
+      nameVariant: v.nameVariant || `${v.size || ""} ${v.color || ""}`.trim() || "ভ্যারিয়েন্ট",
+      size: v.size || "",
+      color: v.color || "",
+      purchaseCostBDT: ((v.purchaseCostPoisha || 0) / 100).toString(),
+      retailPriceBDT: ((v.retailPricePoisha || 0) / 100).toString(),
+      stock: (v.stock ?? v.currentStock ?? 0).toString(),
+      barcode: v.barcode || "",
+      sku: v.sku || "",
+    }));
+
+    if (mappedVariants.length === 0) {
+      mappedVariants.push({
+        nameVariant: "স্ট্যান্ডার্ড ভ্যারিয়েন্ট",
+        size: "24 Inch",
+        color: "কালো",
+        purchaseCostBDT: "3500",
+        retailPriceBDT: "5200",
+        stock: "10",
+        barcode: "",
+        sku: "",
+      });
+    }
+
+    setEditVariants(mappedVariants);
+    setIsEditModalOpen(true);
+  };
+
+  const handleAddEditVariant = () => {
+    setEditVariants([
+      ...editVariants,
+      {
+        nameVariant: "নতুন ভ্যারিয়েন্ট",
+        size: "24 Inch",
+        color: "কালো",
+        purchaseCostBDT: "3500",
+        retailPriceBDT: "5000",
+        stock: "5",
+        barcode: "",
+        sku: "",
+      },
+    ]);
+  };
+
+  const handleRemoveEditVariant = (index: number) => {
+    if (editVariants.length <= 1) return;
+    setEditVariants(editVariants.filter((_, idx) => idx !== index));
+  };
+
+  const handleEditVariantChange = (index: number, field: keyof VariantForm, val: string) => {
+    const updated = [...editVariants];
+    updated[index][field] = val;
+    setEditVariants(updated);
+  };
+
+  const handleUpdateProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProduct) return;
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    if (!editNameBangla) {
+      setErrorMsg("পণ্যের বাংলা নাম আবশ্যক");
+      return;
+    }
 
     try {
-      const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
+      setSubmitting(true);
+      const payload = {
+        nameBangla: editNameBangla,
+        nameEnglish: editNameEnglish,
+        brandId: editBrandId || undefined,
+        categoryId: editCategoryId || undefined,
+        descriptionBangla: editDescriptionBangla,
+        status: editStatus,
+        images: editImageUrl
+          ? [
+              {
+                publicId: `upload-${Date.now()}`,
+                secureUrl: editImageUrl,
+                isPrimary: true,
+                sortOrder: 0,
+              },
+            ]
+          : [],
+        variants: editVariants.map((v) => ({
+          _id: v._id,
+          nameVariant: v.nameVariant,
+          size: v.size,
+          color: v.color,
+          purchaseCostPoisha: Math.round((parseFloat(v.purchaseCostBDT) || 0) * 100),
+          retailPricePoisha: Math.round((parseFloat(v.retailPriceBDT) || 0) * 100),
+          stock: parseInt(v.stock, 10) || 0,
+          barcode: v.barcode.trim() || undefined,
+          sku: v.sku.trim() || undefined,
+          status: editStatus === "archived" ? "inactive" : "active",
+        })),
+      };
+
+      const res = await fetch(`/api/admin/products/${selectedProduct._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) {
+        throw new Error(data.error || "পণ্য আপডেট করা যায়নি");
+      }
+
+      setSuccessMsg("পণ্য ও ভ্যারিয়েন্ট সফলভাবে আপডেট করা হয়েছে!");
+      setIsEditModalOpen(false);
+      setSelectedProduct(null);
+      await loadData();
+    } catch (err: any) {
+      setErrorMsg(err.message || "সমস্যা হয়েছে");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Delete & Archive Handlers
+  const handleOpenDeleteModal = (prod: any) => {
+    setSelectedProduct(prod);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async (permanent: boolean) => {
+    if (!selectedProduct) return;
+
+    try {
+      setSubmitting(true);
+      const url = `/api/admin/products/${selectedProduct._id}${permanent ? "?permanent=true" : ""}`;
+      const res = await fetch(url, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "ডিলিট করতে সমস্যা হয়েছে");
+
+      setSuccessMsg(data.message || (permanent ? "পণ্য সফলভাবে মুছে ফেলা হয়েছে।" : "পণ্য সফলভাবে আর্কাইভ করা হয়েছে।"));
+      setIsDeleteModalOpen(false);
+      setSelectedProduct(null);
       await loadData();
     } catch (err: any) {
       alert(err.message || "ডিলিট করতে সমস্যা হয়েছে");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Restore Product Handler
+  const handleRestoreProduct = async (prod: any) => {
+    try {
+      const res = await fetch(`/api/admin/products/${prod._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "active" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "পুনরুদ্ধার করা যায়নি");
+
+      setSuccessMsg(`'${prod.nameBangla}' পণ্যটি সফলভাবে সক্রিয় করা হয়েছে!`);
+      await loadData();
+    } catch (err: any) {
+      alert(err.message || "পুনরুদ্ধার করতে সমস্যা হয়েছে");
     }
   };
 
@@ -243,11 +444,16 @@ export default function AdminProductsPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-brand-navy tracking-tight">
-            লাগেজ ও পণ্য ক্যাটালগ ব্যবস্থাপনা
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-brand-navy tracking-tight">
+              লাগেজ ও পণ্য ক্যাটালগ ব্যবস্থাপনা
+            </h1>
+            <span className="px-2.5 py-0.5 rounded-full bg-brand-teal/10 text-brand-teal text-[11px] font-bold">
+              লাইভ ক্যাটালগ
+            </span>
+          </div>
           <p className="text-xs text-brand-muted mt-1">
-            মোট {toBengaliNumber(products.length)} টি পণ্য এবং ভ্যারিয়েন্ট ডাটাবেসে নিবন্ধিত
+            মোট {toBengaliNumber(products.length)} টি পণ্য এবং সংশ্লিষ্ট ভ্যারিয়েন্ট ডাটাবেসে নিবন্ধিত
           </p>
         </div>
 
@@ -257,7 +463,7 @@ export default function AdminProductsPage() {
             if (categories.length > 0 && !categoryId) setCategoryId(categories[0]._id);
             if (brands.length > 0 && !brandId) setBrandId(brands[0]._id);
           }}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-brand-teal hover:bg-brand-tealLight text-white font-bold text-xs shadow-sm transition-colors"
+          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-brand-teal hover:bg-brand-tealLight text-white font-bold text-xs shadow-sm transition-colors cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>নতুন লাগেজ যুক্ত করুন</span>
@@ -266,36 +472,80 @@ export default function AdminProductsPage() {
 
       {/* Success Notification */}
       {successMsg && (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center justify-between">
+        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center justify-between animate-in fade-in">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>{successMsg}</span>
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+            <span className="font-semibold">{successMsg}</span>
           </div>
-          <button onClick={() => setSuccessMsg("")} className="text-emerald-700">
+          <button onClick={() => setSuccessMsg("")} className="text-emerald-700 hover:text-emerald-900">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
 
-      {/* Search and Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="পণ্যের নাম, ব্র্যান্ড, বারকোড বা SKU দিয়ে খুঁজুন..."
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-teal"
-          />
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+      {/* Status Filter Tabs & Search Bar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        {/* Filter Tabs */}
+        <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-semibold">
+          <button
+            onClick={() => setStatusFilter("active")}
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              statusFilter === "active"
+                ? "bg-white text-brand-navy shadow-xs font-bold"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+            <span>সক্রিয় পণ্য</span>
+          </button>
+
+          <button
+            onClick={() => setStatusFilter("archived")}
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              statusFilter === "archived"
+                ? "bg-white text-brand-navy shadow-xs font-bold"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <Archive className="w-3.5 h-3.5 text-amber-600" />
+            <span>আর্কাইভকৃত পণ্য</span>
+          </button>
+
+          <button
+            onClick={() => setStatusFilter("all")}
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              statusFilter === "all"
+                ? "bg-white text-brand-navy shadow-xs font-bold"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5 text-brand-teal" />
+            <span>সকল পণ্য</span>
+          </button>
         </div>
-        <button
-          onClick={loadData}
-          className="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-xs font-semibold flex items-center justify-center gap-1.5"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-          <span>রিফ্রেশ</span>
-        </button>
+
+        {/* Search & Refresh */}
+        <div className="flex items-center gap-2 flex-1 sm:max-w-md">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="পণ্যের নাম, ব্র্যান্ড, বারকোড বা SKU দিয়ে খুঁজুন..."
+              className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 bg-white text-xs text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-teal"
+            />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+          </div>
+
+          <button
+            onClick={loadData}
+            className="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            title="ডাটা রিফ্রেশ করুন"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-brand-teal" : ""}`} />
+            <span className="hidden sm:inline">রিফ্রেশ</span>
+          </button>
+        </div>
       </div>
 
       {/* Products Table */}
@@ -306,8 +556,11 @@ export default function AdminProductsPage() {
             <span>পণ্য তালিকা লোড হচ্ছে...</span>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-16 text-slate-400 text-xs">
-            কোনো পণ্য পাওয়া যায়নি।
+          <div className="text-center py-16 text-slate-400 text-xs space-y-2">
+            <p>কোনো পণ্য পাওয়া যায়নি।</p>
+            {statusFilter === "archived" && (
+              <p className="text-[11px] text-slate-400">বর্তমানে কোনো পণ্য আর্কাইভ তালিকায় নেই।</p>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -319,7 +572,8 @@ export default function AdminProductsPage() {
                   <th className="py-3 px-4">ভ্যারিয়েন্টসমূহ (সাইজ, বারকোড ও স্টক)</th>
                   <th className="py-3 px-4">খুচরা মূল্য</th>
                   <th className="py-3 px-4 text-center">মোট স্টক</th>
-                  <th className="py-3 px-4 text-center">বারকোড ও অ্যাকশন</th>
+                  <th className="py-3 px-4 text-center">স্ট্যাটাস</th>
+                  <th className="py-3 px-4 text-center">অ্যাকশন</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -329,6 +583,7 @@ export default function AdminProductsPage() {
                   const brandName = prod.brand?.name || prod.brandId?.name || "Lumina";
                   const catName = prod.category?.nameBangla || prod.categoryId?.nameBangla || "লাগেজ";
                   const primaryPrice = prod.variants?.[0]?.retailPricePoisha || 0;
+                  const isArchived = prod.status === "archived";
 
                   return (
                     <tr key={prod._id} className="hover:bg-slate-50/80 transition-colors">
@@ -395,25 +650,59 @@ export default function AdminProductsPage() {
                         </span>
                       </td>
 
-                      {/* Actions */}
+                      {/* Status Badge */}
+                      <td className="py-3.5 px-4 text-center">
+                        {isArchived ? (
+                          <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-semibold text-[10px] border border-slate-200">
+                            আর্কাইভকৃত
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-[10px] border border-emerald-200">
+                            সক্রিয়
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Actions: Barcode, Edit, Delete/Archive/Restore */}
                       <td className="py-3.5 px-4 text-center">
                         <div className="flex items-center justify-center gap-1.5">
+                          {/* Print Barcode */}
                           <Link
                             href={`/admin/products/barcode/${prod._id}`}
                             className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-brand-teal font-semibold text-[11px] transition-colors"
                             title="বারকোড স্টিকার প্রিন্ট করুন"
                           >
                             <Barcode className="w-3.5 h-3.5 text-brand-teal" />
-                            <span>বারকোড</span>
+                            <span className="hidden sm:inline">বারকোড</span>
                           </Link>
 
+                          {/* Edit Button */}
                           <button
-                            onClick={() => handleDeleteProduct(prod._id, prod.nameBangla)}
-                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
-                            title="আর্কাইভ / ডিলিট"
+                            onClick={() => handleOpenEditModal(prod)}
+                            className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-brand-teal/10 text-slate-600 hover:text-brand-teal transition-colors cursor-pointer"
+                            title="পণ্য ও ভ্যারিয়েন্ট সম্পাদনা (Edit) করুন"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Edit3 className="w-3.5 h-3.5" />
                           </button>
+
+                          {/* Restore or Delete Button */}
+                          {isArchived ? (
+                            <button
+                              onClick={() => handleRestoreProduct(prod)}
+                              className="p-1.5 rounded-lg border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition-colors cursor-pointer"
+                              title="সক্রিয় তালিকায় পুনরুদ্ধার করুন"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleOpenDeleteModal(prod)}
+                              className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                              title="মুছুন / আর্কাইভ করুন"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -425,7 +714,7 @@ export default function AdminProductsPage() {
         )}
       </div>
 
-      {/* Create Product Modal */}
+      {/* CREATE PRODUCT MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl border border-slate-200 max-h-[90vh] overflow-y-auto p-6 space-y-5 animate-in fade-in zoom-in-95">
@@ -435,7 +724,7 @@ export default function AdminProductsPage() {
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700"
+                className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -530,7 +819,7 @@ export default function AdminProductsPage() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={handleImageFileChange}
+                      onChange={(e) => handleImageFileChange(e, false)}
                       className="hidden"
                       disabled={uploadingImage}
                     />
@@ -573,7 +862,7 @@ export default function AdminProductsPage() {
                   <button
                     type="button"
                     onClick={handleAddVariant}
-                    className="text-brand-teal hover:underline font-bold flex items-center gap-1 text-[11px]"
+                    className="text-brand-teal hover:underline font-bold flex items-center gap-1 text-[11px] cursor-pointer"
                   >
                     <Plus className="w-3 h-3" />
                     <span>ভ্যারিয়েন্ট যোগ করুন</span>
@@ -630,7 +919,7 @@ export default function AdminProductsPage() {
                         type="button"
                         onClick={() => handleRemoveVariant(idx)}
                         disabled={variants.length <= 1}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 disabled:opacity-30"
+                        className="p-1.5 text-slate-400 hover:text-rose-600 disabled:opacity-30 cursor-pointer"
                         title="মুছুন"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -645,19 +934,351 @@ export default function AdminProductsPage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold"
+                  className="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold cursor-pointer"
                 >
                   বাতিল
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 rounded-xl bg-brand-teal hover:bg-brand-tealLight text-white font-bold disabled:opacity-50 transition-colors shadow-xs"
+                  className="px-5 py-2 rounded-xl bg-brand-teal hover:bg-brand-tealLight text-white font-bold disabled:opacity-50 transition-colors shadow-xs cursor-pointer"
                 >
                   {submitting ? "সংরক্ষণ হচ্ছে..." : "পণ্য সংরক্ষণ করুন"}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT PRODUCT MODAL */}
+      {isEditModalOpen && selectedProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl border border-slate-200 max-h-[90vh] overflow-y-auto p-6 space-y-5 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h2 className="text-lg font-bold text-brand-navy flex items-center gap-2">
+                  <Edit3 className="w-5 h-5 text-brand-teal" />
+                  <span>পণ্য ও ভ্যারিয়েন্ট সম্পাদনা (Edit)</span>
+                </h2>
+                <span className="text-[11px] text-slate-400 font-mono">
+                  আইডি: {selectedProduct._id}
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  setIsEditModalOpen(false);
+                  setSelectedProduct(null);
+                }}
+                className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {errorMsg && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleUpdateProduct} className="space-y-4 text-xs">
+              {/* Product Basic Info */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    পণ্যের নাম (বাংলা) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editNameBangla}
+                    onChange={(e) => setEditNameBangla(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    পণ্যের নাম (ইংরেজি)
+                  </label>
+                  <input
+                    type="text"
+                    value={editNameEnglish}
+                    onChange={(e) => setEditNameEnglish(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Brand and Category */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    ব্র্যান্ড *
+                  </label>
+                  <select
+                    required
+                    value={editBrandId}
+                    onChange={(e) => setEditBrandId(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none"
+                  >
+                    <option value="">ব্র্যান্ড নির্বাচন করুন</option>
+                    {brands.map((b) => (
+                      <option key={b._id} value={b._id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    ক্যাটাগরি *
+                  </label>
+                  <select
+                    required
+                    value={editCategoryId}
+                    onChange={(e) => setEditCategoryId(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none"
+                  >
+                    <option value="">ক্যাটাগরি নির্বাচন করুন</option>
+                    {categories.map((c) => (
+                      <option key={c._id} value={c._id}>
+                        {c.nameBangla}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    স্ট্যাটাস
+                  </label>
+                  <select
+                    value={editStatus}
+                    onChange={(e) => setEditStatus(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none"
+                  >
+                    <option value="active">সক্রিয় (Active)</option>
+                    <option value="inactive">নিষ্ক্রিয় (Inactive)</option>
+                    <option value="archived">আর্কাইভকৃত (Archived)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Image Upload */}
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  পণ্যের ছবি
+                </label>
+                <div className="flex items-center gap-3">
+                  <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 cursor-pointer text-slate-700 font-semibold transition-colors">
+                    <Upload className="w-3.5 h-3.5 text-brand-teal" />
+                    <span>{uploadingEditImage ? "আপলোড হচ্ছে..." : "নতুন ছবি পরিবর্তন"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageFileChange(e, true)}
+                      className="hidden"
+                      disabled={uploadingEditImage}
+                    />
+                  </label>
+                  {editImageUrl && (
+                    <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-slate-200">
+                      <Image src={editImageUrl} alt="" fill className="object-cover" />
+                    </div>
+                  )}
+                  <input
+                    type="text"
+                    value={editImageUrl}
+                    onChange={(e) => setEditImageUrl(e.target.value)}
+                    placeholder="অথবা সরাসরি ছবির লিঙ্ক দিন..."
+                    className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-slate-700 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  বিবরণ ও স্পেসিফিকেশন (বাংলা)
+                </label>
+                <textarea
+                  rows={2}
+                  value={editDescriptionBangla}
+                  onChange={(e) => setEditDescriptionBangla(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none"
+                />
+              </div>
+
+              {/* Variants Section with Stock, Cost, Price, Barcode */}
+              <div className="border border-slate-200 rounded-xl p-3 bg-slate-50/50 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-800">
+                    ভ্যারিয়েন্টসমূহ (সাইজ, মূল্য, বারকোড ও স্টক)
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleAddEditVariant}
+                    className="text-brand-teal hover:underline font-bold flex items-center gap-1 text-[11px] cursor-pointer"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>ভ্যারিয়েন্ট যোগ করুন</span>
+                  </button>
+                </div>
+
+                {editVariants.map((v, idx) => (
+                  <div
+                    key={v._id || idx}
+                    className="grid grid-cols-2 sm:grid-cols-7 gap-2 bg-white p-2.5 rounded-lg border border-slate-200 items-end"
+                  >
+                    <div className="col-span-2">
+                      <label className="text-[10px] text-slate-500 font-semibold">ভ্যারিয়েন্ট নাম / সাইজ</label>
+                      <input
+                        type="text"
+                        value={v.nameVariant}
+                        onChange={(e) => handleEditVariantChange(idx, "nameVariant", e.target.value)}
+                        className="w-full px-2 py-1.5 rounded border border-slate-200 text-[11px]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-500 font-semibold">ক্রয়মূল্য (৳)</label>
+                      <input
+                        type="number"
+                        value={v.purchaseCostBDT}
+                        onChange={(e) => handleEditVariantChange(idx, "purchaseCostBDT", e.target.value)}
+                        className="w-full px-2 py-1.5 rounded border border-slate-200 text-[11px]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-500 font-semibold">বিক্রয়মূল্য (৳)</label>
+                      <input
+                        type="number"
+                        value={v.retailPriceBDT}
+                        onChange={(e) => handleEditVariantChange(idx, "retailPriceBDT", e.target.value)}
+                        className="w-full px-2 py-1.5 rounded border border-slate-200 text-[11px]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-500 font-semibold">স্টক (পিস)</label>
+                      <input
+                        type="number"
+                        value={v.stock}
+                        onChange={(e) => handleEditVariantChange(idx, "stock", e.target.value)}
+                        className="w-full px-2 py-1.5 rounded border border-slate-200 text-[11px]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-500 font-semibold">বারকোড</label>
+                      <input
+                        type="text"
+                        value={v.barcode}
+                        onChange={(e) => handleEditVariantChange(idx, "barcode", e.target.value)}
+                        placeholder="স্বয়ংক্রিয়"
+                        className="w-full px-2 py-1.5 rounded border border-slate-200 text-[11px] font-mono"
+                      />
+                    </div>
+                    <div className="flex items-center justify-end">
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveEditVariant(idx)}
+                        disabled={editVariants.length <= 1}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 disabled:opacity-30 cursor-pointer"
+                        title="মুছুন"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditModalOpen(false);
+                    setSelectedProduct(null);
+                  }}
+                  className="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold cursor-pointer"
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-5 py-2 rounded-xl bg-brand-teal hover:bg-brand-tealLight text-white font-bold disabled:opacity-50 transition-colors shadow-xs cursor-pointer"
+                >
+                  {submitting ? "আপডেট হচ্ছে..." : "পরিবর্তন সংরক্ষণ করুন"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE / ARCHIVE CONFIRMATION MODAL */}
+      {isDeleteModalOpen && selectedProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md border border-slate-200 p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h2 className="text-base font-bold text-rose-700 flex items-center gap-2">
+                <Trash2 className="w-5 h-5 text-rose-600" />
+                <span>পণ্য ডিলিট / আর্কাইভ নিশ্চিতকরণ</span>
+              </h2>
+              <button
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setSelectedProduct(null);
+                }}
+                className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600">
+              আপনি কি <span className="font-bold text-slate-900">'{selectedProduct.nameBangla}'</span> পণ্যটি সরিয়ে ফেলতে চান?
+            </p>
+
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-[11px] space-y-1">
+              <p className="font-bold">পরামর্শ:</p>
+              <p>• <strong>আর্কাইভ করুন:</strong> পণ্যটি ক্যাটালগ ও বিক্রয় মেনু থেকে নিরাপদে গোপন থাকবে, কিন্তু পূর্বের বিক্রয় হিস্ট্রি সুরক্ষিত থাকবে (পুনরুদ্ধারযোগ্য)।</p>
+              <p>• <strong>স্থায়ীভাবে মুছুন:</strong> ডাটাবেস থেকে পণ্য ও এর সকল স্টক রেকর্ড সম্পূর্ণ মুছে ফেলা হবে (যদি পূর্বের বিক্রয় চালান না থাকে)।</p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setSelectedProduct(null);
+                }}
+                className="w-full sm:w-auto px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs cursor-pointer"
+              >
+                বাতিল
+              </button>
+
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => handleConfirmDelete(false)}
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition-colors shadow-xs cursor-pointer"
+              >
+                আর্কাইভ করুন
+              </button>
+
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => handleConfirmDelete(true)}
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition-colors shadow-xs cursor-pointer"
+              >
+                স্থায়ীভাবে মুছুন
+              </button>
+            </div>
           </div>
         </div>
       )}

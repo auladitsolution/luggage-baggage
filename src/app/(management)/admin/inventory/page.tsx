@@ -454,7 +454,7 @@ export default function AdminInventoryPage() {
                 >
                   {items.map((i, idx) => (
                     <option key={i.balanceId || i.variantId || `opt-${idx}`} value={i.variantId || i.balanceId}>
-                      {i.productName} ({i.variantName}) — বর্তমান স্টক: {i.currentStock}
+                      {i.productName} {i.variantName ? `(${i.variantName})` : ""} — বর্তমান স্টক: {i.currentStock}
                     </option>
                   ))}
                 </select>

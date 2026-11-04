@@ -9,6 +9,7 @@ import { Location } from "@/models/Location";
 import { requirePermission } from "@/lib/rbac/guards";
 import { getNextPurchaseNumber } from "@/lib/purchasing/purchaseSequence";
 import { getMockStore } from "@/lib/db/memoryStore";
+import { resolveProductVariant } from "@/lib/catalog/variantUtils";
 
 export async function GET(req: NextRequest) {
   try {
@@ -241,7 +242,7 @@ export async function POST(req: NextRequest) {
     const invoiceItems = [];
 
     for (const item of items) {
-      const variant = await ProductVariant.findById(item.variantId);
+      const variant = await resolveProductVariant(item.variantId);
       if (!variant) {
         return NextResponse.json(
           { error: `ভ্যারিয়েন্ট পাওয়া যায়নি (${item.variantId})` },

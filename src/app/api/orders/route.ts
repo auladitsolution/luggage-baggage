@@ -4,6 +4,8 @@ import { OnlineOrder } from "@/models/OnlineOrder";
 import { ProductVariant } from "@/models/ProductVariant";
 import { InventoryBalance } from "@/models/InventoryBalance";
 import { Customer } from "@/models/Customer";
+import { ShopSetting } from "@/models/ShopSetting";
+import { STORE_INFO } from "@/lib/config/storeInfo";
 import { getNextOrderNumber } from "@/lib/orders/orderSequence";
 import { getMockStore } from "@/lib/db/memoryStore";
 import { OnlinePaymentStatus } from "@/types/orders";
@@ -86,9 +88,28 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const deliveryFeePoisha = deliveryZone === "outside_dhaka" ? 15000 : 8000; // ৳১৫০ or ৳৮০
-    const orderNumber = await getNextOrderNumber();
     const db = await connectToDatabase();
+
+    // Determine dynamic delivery fee from ShopSetting
+    let feeInside = (STORE_INFO.deliveryFeeInsideDhaka || 80) * 100;
+    let feeOutside = (STORE_INFO.deliveryFeeOutsideDhaka || 150) * 100;
+
+    if (!db) {
+      const store: any = getMockStore();
+      if (store.settings) {
+        if (typeof store.settings.deliveryFeeInsideDhaka === "number") feeInside = store.settings.deliveryFeeInsideDhaka * 100;
+        if (typeof store.settings.deliveryFeeOutsideDhaka === "number") feeOutside = store.settings.deliveryFeeOutsideDhaka * 100;
+      }
+    } else {
+      const shopSettings = await ShopSetting.findOne({}).lean();
+      if (shopSettings) {
+        if (typeof shopSettings.deliveryFeeInsideDhaka === "number") feeInside = shopSettings.deliveryFeeInsideDhaka * 100;
+        if (typeof shopSettings.deliveryFeeOutsideDhaka === "number") feeOutside = shopSettings.deliveryFeeOutsideDhaka * 100;
+      }
+    }
+
+    const deliveryFeePoisha = deliveryZone === "outside_dhaka" ? feeOutside : feeInside;
+    const orderNumber = await getNextOrderNumber();
 
     // 3. Mock In-Memory Mode
     if (!db) {

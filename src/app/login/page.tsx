@@ -18,8 +18,10 @@ import {
 import { auth, googleProvider } from "@/lib/firebase/client";
 import { signInWithPopup } from "firebase/auth";
 import { STORE_INFO } from "@/lib/config/storeInfo";
+import { useShopSettings } from "@/context/ShopSettingsContext";
 
 function LoginForm() {
+  const { settings } = useShopSettings();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect");
@@ -133,7 +135,7 @@ function LoginForm() {
           <div className="w-12 h-12 rounded-2xl overflow-hidden bg-white shadow-lg border border-slate-200/80 flex items-center justify-center p-0.5 group-hover:scale-105 transition-transform">
             <Image
               src="/logo.png"
-              alt={STORE_INFO.name}
+              alt={settings.name}
               width={48}
               height={48}
               priority
@@ -142,10 +144,10 @@ function LoginForm() {
           </div>
           <div>
             <span className="text-2xl font-bold tracking-tight text-brand-navy group-hover:text-brand-teal transition-colors">
-              {STORE_INFO.nameBangla}
+              {settings.nameBangla}
             </span>
             <span className="block text-[11px] text-brand-muted -mt-1">
-              {STORE_INFO.name} • {STORE_INFO.shortAddress}
+              {settings.name} • {settings.shortAddress}
             </span>
           </div>
         </Link>

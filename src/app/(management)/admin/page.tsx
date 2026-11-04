@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { formatBDT, toBengaliNumber } from "@/lib/utils";
 import { STORE_INFO } from "@/lib/config/storeInfo";
+import { useShopSettings } from "@/context/ShopSettingsContext";
 
 interface IDashboardStats {
   todaySalesPoisha: number;
@@ -55,6 +56,7 @@ interface ILowStockItem {
 }
 
 export default function AdminDashboardPage() {
+  const { settings } = useShopSettings();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<IDashboardStats>({
     todaySalesPoisha: 0,
@@ -148,10 +150,10 @@ export default function AdminDashboardPage() {
       <div className="p-6 rounded-2xl bg-gradient-to-r from-brand-navy via-brand-navyLight to-brand-teal text-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <span className="px-3 py-1 rounded-full bg-white/10 text-brand-gold text-xs font-semibold">
-            {STORE_INFO.nameBangla} - সেন্ট্রাল কন্ট্রোল ড্যাশবোর্ড
+            {settings.nameBangla} - সেন্ট্রাল কন্ট্রোল ড্যাশবোর্ড
           </span>
           <h1 className="text-xl sm:text-2xl font-bold mt-2">
-            স্বাগতম, {STORE_INFO.ownersBangla} (মালিক)
+            স্বাগতম, {settings.ownersBangla} (মালিক)
           </h1>
           <p className="text-xs sm:text-sm text-slate-300 mt-0.5">
             আজকের বিক্রয়, রিয়েল-টাইম স্টক স্থিতি ও আর্থিক লেনদেনের সারসংক্ষেপ
@@ -467,13 +469,13 @@ export default function AdminDashboardPage() {
               শোরুম অবস্থান ও বিবরণ
             </span>
             <h4 className="text-sm font-bold mt-1 text-white">
-              {STORE_INFO.fullName}
+              {settings.fullName || `${settings.name} (${settings.nameBangla})`}
             </h4>
             <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-              {STORE_INFO.addressBangla}
+              {settings.addressBangla}
             </p>
             <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-slate-300">
-              <span>মোবাইল: {STORE_INFO.mobile}</span>
+              <span>মোবাইল: {settings.mobile}</span>
               <Link href="/admin/settings" className="text-brand-gold hover:underline">
                 সেটিংস এডিট →
               </Link>

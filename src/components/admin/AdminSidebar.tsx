@@ -25,6 +25,7 @@ import {
 import { cn } from "@/lib/utils";
 import { IUserSession } from "@/types/auth";
 import { STORE_INFO } from "@/lib/config/storeInfo";
+import { useShopSettings } from "@/context/ShopSettingsContext";
 
 interface IMenuItem {
   label: string;
@@ -46,6 +47,7 @@ interface AdminSidebarProps {
 export default function AdminSidebar({ onClose }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { settings } = useShopSettings();
   const [session, setSession] = useState<IUserSession | null>(null);
 
   useEffect(() => {
@@ -116,15 +118,15 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
           <div className="w-9 h-9 rounded-xl overflow-hidden bg-white shadow-md border border-slate-700/60 flex items-center justify-center p-0.5">
             <Image
               src="/logo.png"
-              alt={STORE_INFO.name}
+              alt={settings.name}
               width={36}
               height={36}
               className="w-full h-full object-contain"
             />
           </div>
           <div>
-            <span className="text-sm font-bold text-white tracking-tight">{STORE_INFO.name}</span>
-            <span className="block text-[10px] text-brand-gold">{STORE_INFO.nameBangla} • যমুনা ফিউচার পার্ক</span>
+            <span className="text-sm font-bold text-white tracking-tight">{settings.name}</span>
+            <span className="block text-[10px] text-brand-gold">{settings.nameBangla} • {settings.shortAddress}</span>
           </div>
         </Link>
         {onClose && (

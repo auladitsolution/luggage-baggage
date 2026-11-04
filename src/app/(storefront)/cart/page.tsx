@@ -6,8 +6,10 @@ import Link from "next/link";
 import { Trash2, ShoppingBag, ArrowRight, ShieldCheck, ArrowLeft, RefreshCw } from "lucide-react";
 import { formatBDT, toBengaliNumber } from "@/lib/utils";
 import { getCartItems, updateCartItemQuantity, removeFromCart, CartItem } from "@/lib/cart";
+import { useShopSettings } from "@/context/ShopSettingsContext";
 
 export default function CartPage() {
+  const { settings } = useShopSettings();
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [deliveryZone, setDeliveryZone] = useState<"inside_dhaka" | "outside_dhaka">("inside_dhaka");
@@ -34,8 +36,10 @@ export default function CartPage() {
   };
 
   const subTotalPoisha = items.reduce((sum, item) => sum + item.pricePoisha * item.quantity, 0);
+  const feeInside = (settings.deliveryFeeInsideDhaka ?? 80) * 100;
+  const feeOutside = (settings.deliveryFeeOutsideDhaka ?? 150) * 100;
   const deliveryFeePoisha =
-    items.length > 0 ? (deliveryZone === "outside_dhaka" ? 15000 : 8000) : 0;
+    items.length > 0 ? (deliveryZone === "outside_dhaka" ? feeOutside : feeInside) : 0;
   const grandTotalPoisha = subTotalPoisha + deliveryFeePoisha;
 
   if (!isLoaded) {

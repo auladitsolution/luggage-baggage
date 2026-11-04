@@ -20,8 +20,10 @@ import {
   Crown
 } from "lucide-react";
 import { STORE_INFO } from "@/lib/config/storeInfo";
+import { useShopSettings } from "@/context/ShopSettingsContext";
 
 export default function ShopSettingsPage() {
+  const { refreshSettings } = useShopSettings();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,6 +98,15 @@ export default function ShopSettingsPage() {
       }
 
       setSuccess("শপ সেটিংস সফলভাবে ডাটাবেসে আপডেট ও সংরক্ষিত হয়েছে!");
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("shop-settings-updated", {
+            detail: data.settings || formData,
+          })
+        );
+      }
+      await refreshSettings();
     } catch (err: any) {
       setError(err.message);
     } finally {

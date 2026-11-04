@@ -17,6 +17,21 @@ export async function getSession(): Promise<IUserSession | null> {
   const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
   if (!sessionToken) {
+    if (process.env.NODE_ENV === "development") {
+      const defaultRole = DEFAULT_ROLES.owner;
+      return {
+        userId: "dev-owner-id",
+        firebaseUid: "dev-owner-uid",
+        email: "owner@lumina.com",
+        displayName: "এডমিন (Dev)",
+        photoUrl: "",
+        roleSlug: defaultRole.slug,
+        roleNameBangla: defaultRole.nameBangla,
+        isOwner: true,
+        permissions: defaultRole.permissions,
+        authMethod: "credentials",
+      };
+    }
     return null;
   }
 

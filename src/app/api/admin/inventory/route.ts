@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
         const isLowStock = currentStock <= bal.lowStockAlertThreshold;
 
         const balanceId = bal._id ? String(bal._id) : `bal-${idx}`;
-        const variantId = bal.variantId ? String(bal.variantId) : (variant?._id ? String(variant._id) : `var-${balanceId}`);
+        const variantId = bal.variantId ? String(bal.variantId) : (variant?._id ? String(variant._id) : balanceId);
 
         return {
           balanceId,
@@ -97,6 +97,24 @@ export async function GET(req: NextRequest) {
       .populate({ path: "locationId", select: "name code" })
       .lean();
 
+    // Auto-heal any balance records that have missing or dangling variant references
+    for (const bal of balances as any[]) {
+      if (!bal.variantId && bal.productId?._id) {
+        try {
+          const fallbackVariant = await ProductVariant.findOne({ productId: bal.productId._id }).lean();
+          if (fallbackVariant) {
+            bal.variantId = fallbackVariant;
+            await InventoryBalance.updateOne(
+              { _id: bal._id },
+              { $set: { variantId: fallbackVariant._id } }
+            );
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+
     let items = balances.map((bal: any, idx: number) => {
       const v = bal.variantId;
       const p = bal.productId;
@@ -108,7 +126,7 @@ export async function GET(req: NextRequest) {
       const isLowStock = currentStock <= (bal.lowStockAlertThreshold || 3);
 
       const balanceId = bal._id ? String(bal._id) : `bal-${idx}`;
-      const variantId = v?._id ? String(v._id) : (bal.variantId ? String(bal.variantId) : `var-${balanceId}`);
+      const variantId = v?._id ? String(v._id) : (bal.variantId ? String(bal.variantId) : balanceId);
 
       return {
         balanceId,

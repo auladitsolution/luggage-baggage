@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Printer, ArrowLeft, RefreshCw, CheckCircle2 } from "lucide-react";
 import { formatBDT, toBengaliNumber } from "@/lib/utils";
 import { STORE_INFO } from "@/lib/config/storeInfo";
+import { useShopSettings } from "@/context/ShopSettingsContext";
 
 export default function MoneyReceiptPrintPage({
   params,
@@ -12,6 +13,7 @@ export default function MoneyReceiptPrintPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { settings } = useShopSettings();
   const [receipt, setReceipt] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [format, setFormat] = useState<"80mm" | "a4">("80mm");
@@ -101,11 +103,11 @@ export default function MoneyReceiptPrintPage({
         {format === "80mm" && (
           <div className="receipt-80mm bg-white p-4 shadow-md rounded-xl max-w-[80mm] w-full text-slate-900 font-sans print:shadow-none print:p-1 print:max-w-none">
             <div className="text-center border-b border-dashed border-slate-300 pb-2">
-              <img src="/logo.png" alt={STORE_INFO.name} className="w-10 h-10 mx-auto mb-1.5 object-contain" />
-              <h2 className="text-sm font-black">{STORE_INFO.name}</h2>
-              <p className="text-[11px] font-bold text-slate-800">{STORE_INFO.nameBangla}</p>
-              <p className="text-[10px] text-slate-600">{STORE_INFO.address}</p>
-              <p className="text-[9px] text-slate-500">ফোন: {STORE_INFO.mobile}</p>
+              <img src="/logo.png" alt={settings.name} className="w-10 h-10 mx-auto mb-1.5 object-contain" />
+              <h2 className="text-sm font-black">{settings.name}</h2>
+              <p className="text-[11px] font-bold text-slate-800">{settings.nameBangla}</p>
+              <p className="text-[10px] text-slate-600">{settings.address}</p>
+              <p className="text-[9px] text-slate-500">ফোন: {settings.mobile}</p>
               <div className="mt-1 inline-block px-2 py-0.5 rounded bg-slate-100 font-extrabold text-[10px] uppercase tracking-wide">
                 টাকা জমার রসিদ (Money Receipt)
               </div>
@@ -170,19 +172,19 @@ export default function MoneyReceiptPrintPage({
               <div className="flex items-center gap-3.5">
                 <img
                   src="/logo.png"
-                  alt={STORE_INFO.name}
+                  alt={settings.name}
                   className="w-16 h-16 object-contain rounded-xl border border-slate-200 bg-white p-1 flex-shrink-0"
                 />
                 <div>
-                  <h1 className="text-xl font-bold text-brand-navy">{STORE_INFO.name}</h1>
-                  <p className="text-sm font-semibold text-brand-teal">{STORE_INFO.nameBangla}</p>
+                  <h1 className="text-xl font-bold text-brand-navy">{settings.name}</h1>
+                  <p className="text-sm font-semibold text-brand-teal">{settings.nameBangla}</p>
                   <p className="text-slate-600 text-[11px] mt-0.5">
-                    {STORE_INFO.address}
+                    {settings.address}
                   </p>
                   <p className="text-slate-600 text-[11px]">
-                    প্রোপাইটর: <strong>{STORE_INFO.owners}</strong> • মোবাইল: <strong>{STORE_INFO.mobile}</strong>
+                    প্রোপাইটর: <strong>{settings.owners}</strong> • মোবাইল: <strong>{settings.mobile}</strong>
                   </p>
-                  <p className="text-slate-500 text-[10px]">ইমেইল: {STORE_INFO.email}</p>
+                  <p className="text-slate-500 text-[10px]">ইমেইল: {settings.email}</p>
                 </div>
               </div>
               <div className="text-right">

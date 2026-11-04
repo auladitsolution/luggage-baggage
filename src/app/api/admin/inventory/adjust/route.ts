@@ -6,6 +6,7 @@ import { ProductVariant } from "@/models/ProductVariant";
 import { Location } from "@/models/Location";
 import { requirePermission } from "@/lib/rbac/guards";
 import { getMockStore } from "@/lib/db/memoryStore";
+import { resolveProductVariant } from "@/lib/catalog/variantUtils";
 import mongoose from "mongoose";
 
 export async function POST(req: NextRequest) {
@@ -96,9 +97,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Live MongoDB Atlas Concurrency-Safe Atomic Mutation
-    const variant = await ProductVariant.findById(variantId);
+    const variant = await resolveProductVariant(variantId);
     if (!variant) {
-      return NextResponse.json({ error: "ভ্যারিয়েন্ট পাওয়া যায়নি" }, { status: 404 });
+      return NextResponse.json(
+        { error: "ভ্যারিয়েন্ট পাওয়া যায়নি। অনুগ্রহ করে সঠিক ভ্যারিয়েন্ট নির্বাচন করুন।" },
+        { status: 404 }
+      );
     }
 
     let locId = locationId;
@@ -108,20 +112,36 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Fetch current balance before change
-    let balanceDoc = await InventoryBalance.findOne({
-      variantId,
-      locationId: locId,
-    });
+    let cleanId = typeof variantId === "string" ? variantId.replace(/^var-/, "").trim() : "";
+    let balanceDoc = null;
+
+    if (mongoose.Types.ObjectId.isValid(cleanId)) {
+      balanceDoc = await InventoryBalance.findById(cleanId);
+    }
+
+    if (!balanceDoc) {
+      balanceDoc = await InventoryBalance.findOne({
+        variantId: variant._id,
+        locationId: locId,
+      });
+    }
 
     if (!balanceDoc) {
       balanceDoc = await InventoryBalance.create({
-        variantId,
+        variantId: variant._id,
         productId: variant.productId,
         locationId: locId,
         currentStock: 0,
         reservedStock: 0,
         lowStockAlertThreshold: 3,
       });
+    } else {
+      // Auto-heal variantId/productId if broken
+      if (!balanceDoc.variantId || !balanceDoc.productId) {
+        balanceDoc.variantId = variant._id;
+        balanceDoc.productId = variant.productId;
+        await balanceDoc.save();
+      }
     }
 
     const balanceBefore = balanceDoc.currentStock;
@@ -165,7 +185,7 @@ export async function POST(req: NextRequest) {
 
     // 3. Write Immutable Audit Movement Record
     const movement = await InventoryMovement.create({
-      variantId,
+      variantId: variant._id,
       locationId: locId,
       movementType: quantityChange < 0 ? "damage_loss" : "manual_adjustment",
       quantity: quantityChange,
@@ -181,7 +201,7 @@ export async function POST(req: NextRequest) {
       success: true,
       message: "স্টক সফলভাবে সমন্বয় করা হয়েছে।",
       balance: {
-        variantId,
+        variantId: variant._id.toString(),
         balanceBefore,
         balanceAfter,
         currentStock: balanceAfter,

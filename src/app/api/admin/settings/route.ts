@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db/mongodb";
 import { ShopSetting } from "@/models/ShopSetting";
 import { requirePermission } from "@/lib/rbac/guards";
-import { STORE_INFO } from "@/lib/config/storeInfo";
+import { STORE_INFO, updateStoreInfoInMemory } from "@/lib/config/storeInfo";
 import { getMockStore } from "@/lib/db/memoryStore";
 
 const DEFAULT_SETTINGS_PAYLOAD = {
@@ -75,6 +75,7 @@ export async function PUT(req: NextRequest) {
         ...body,
         updatedAt: new Date(),
       };
+      updateStoreInfoInMemory(store.settings);
       return NextResponse.json({
         success: true,
         message: "শপ সেটিংস সফলভাবে আপডেট করা হয়েছে।",
@@ -87,6 +88,10 @@ export async function PUT(req: NextRequest) {
       { $set: body },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
+
+    if (updated) {
+      updateStoreInfoInMemory(updated.toObject());
+    }
 
     return NextResponse.json({
       success: true,

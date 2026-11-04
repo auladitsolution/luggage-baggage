@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { formatBDT, toBengaliNumber } from "@/lib/utils";
 import { SAMPLE_PRODUCTS, SAMPLE_CATEGORIES } from "@/lib/sample-data";
+import { normalizeCategorySlug, isCategoryMatch } from "@/lib/catalog/categoryUtils";
 
 interface ProductItem {
   _id: string;
@@ -50,7 +51,7 @@ function ShopCatalogContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const initialCategory = searchParams.get("category") || "all";
+  const initialCategory = normalizeCategorySlug(searchParams.get("category") || "all");
   const initialBrand = searchParams.get("brand") || "all";
   const initialSize = searchParams.get("size") || "all";
   const initialPrice = searchParams.get("price") || "all";
@@ -77,7 +78,7 @@ function ShopCatalogContent() {
 
   // Sync state when URL searchParams changes
   useEffect(() => {
-    setSelectedCategory(searchParams.get("category") || "all");
+    setSelectedCategory(normalizeCategorySlug(searchParams.get("category") || "all"));
     setSelectedBrand(searchParams.get("brand") || "all");
     setSelectedSize(searchParams.get("size") || "all");
     setSelectedPricePreset(searchParams.get("price") || "all");
@@ -96,6 +97,20 @@ function ShopCatalogContent() {
       Boolean(search)
     );
   }, [selectedCategory, selectedBrand, selectedSize, selectedPricePreset, inStockOnly, search]);
+
+  const handleCategoryChange = (catId: string) => {
+    const norm = normalizeCategorySlug(catId);
+    setSelectedCategory(norm);
+
+    const params = new URLSearchParams(searchParams.toString());
+    if (norm === "all") {
+      params.delete("category");
+    } else {
+      params.set("category", norm);
+    }
+    const qs = params.toString();
+    router.push(qs ? `/shop?${qs}` : "/shop");
+  };
 
   // Reset all filters function
   const handleResetFilters = () => {
@@ -138,21 +153,41 @@ function ShopCatalogContent() {
             setBrands(data.brands);
           }
         } else {
-          // Fallback to sample products
-          const fallback = SAMPLE_PRODUCTS.map((p) => ({
-            _id: p.id,
-            nameBangla: p.nameBangla,
-            slug: p.slug,
-            categoryName: p.category,
-            categorySlug: p.category,
-            brandName: p.brand,
-            images: p.images.map((img) => ({ secureUrl: img })),
-            minPricePoisha: p.basePricePoisha,
-            maxPricePoisha: p.basePricePoisha,
-            totalAvailableStock: 15,
-            inStock: true,
-            variants: p.variants,
-          }));
+          // Fallback to sample products with proper category & filter application
+          let fallback = SAMPLE_PRODUCTS.map((p) => {
+            const matchingCat = SAMPLE_CATEGORIES.find((c) => c.name === p.category);
+            return {
+              _id: p.id,
+              nameBangla: p.nameBangla,
+              slug: p.slug,
+              categoryName: p.category,
+              categorySlug: matchingCat?.slug || normalizeCategorySlug(p.category),
+              brandName: p.brand,
+              images: p.images.map((img) => ({ secureUrl: img })),
+              minPricePoisha: p.basePricePoisha,
+              maxPricePoisha: p.basePricePoisha,
+              totalAvailableStock: 15,
+              inStock: true,
+              variants: p.variants,
+            };
+          });
+
+          if (selectedCategory && selectedCategory !== "all") {
+            const norm = normalizeCategorySlug(selectedCategory);
+            fallback = fallback.filter((p) => {
+              return (
+                isCategoryMatch(p.categorySlug, norm) ||
+                p.categoryName === selectedCategory ||
+                (norm === "cabin-luggage" &&
+                  p.variants.some((v: any) => v.size?.includes("Cabin") || v.size?.includes("২০")))
+              );
+            });
+          }
+
+          if (selectedBrand && selectedBrand !== "all") {
+            fallback = fallback.filter((p) => p.brandName.toLowerCase() === selectedBrand.toLowerCase());
+          }
+
           setProducts(fallback);
         }
       } catch (err) {
@@ -176,7 +211,7 @@ function ShopCatalogContent() {
           </h4>
           {selectedCategory !== "all" && (
             <button
-              onClick={() => setSelectedCategory("all")}
+              onClick={() => handleCategoryChange("all")}
               className="text-[11px] text-brand-teal hover:underline font-medium"
             >
               সকল
@@ -185,7 +220,7 @@ function ShopCatalogContent() {
         </div>
         <div className="space-y-1.5 text-sm max-h-72 overflow-y-auto pr-1">
           <button
-            onClick={() => setSelectedCategory("all")}
+            onClick={() => handleCategoryChange("all")}
             className={`w-full text-left px-3 py-2 rounded-xl flex items-center justify-between text-xs transition-colors ${
               selectedCategory === "all"
                 ? "bg-teal-50 text-brand-teal font-bold shadow-sm"
@@ -197,11 +232,11 @@ function ShopCatalogContent() {
           </button>
           {(categories.length > 0 ? categories : SAMPLE_CATEGORIES).map((cat: any) => {
             const catId = cat.slug || cat._id;
-            const isSelected = selectedCategory === catId;
+            const isSelected = isCategoryMatch(selectedCategory, catId) || isCategoryMatch(selectedCategory, cat.name);
             return (
               <button
                 key={catId}
-                onClick={() => setSelectedCategory(catId)}
+                onClick={() => handleCategoryChange(catId)}
                 className={`w-full text-left px-3 py-2 rounded-xl flex items-center justify-between text-xs transition-colors ${
                   isSelected
                     ? "bg-teal-50 text-brand-teal font-bold shadow-sm"
@@ -428,10 +463,17 @@ function ShopCatalogContent() {
 
             {selectedCategory !== "all" && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-teal-50 text-brand-teal text-xs font-semibold">
-                ক্যাটাগরি: {categories.find((c) => (c.slug || c._id) === selectedCategory)?.nameBangla || selectedCategory}
+                ক্যাটাগরি:{" "}
+                {(categories.length > 0 ? categories : SAMPLE_CATEGORIES).find((c) =>
+                  isCategoryMatch(c.slug || c._id, selectedCategory)
+                )?.nameBangla ||
+                  (categories.length > 0 ? categories : SAMPLE_CATEGORIES).find((c) =>
+                    isCategoryMatch(c.slug || c._id, selectedCategory)
+                  )?.name ||
+                  selectedCategory}
                 <button
-                  onClick={() => setSelectedCategory("all")}
-                  className="hover:text-teal-900 transition"
+                  onClick={() => handleCategoryChange("all")}
+                  className="hover:text-teal-900 transition ml-1"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>

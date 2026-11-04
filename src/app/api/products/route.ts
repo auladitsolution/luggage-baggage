@@ -7,6 +7,7 @@ import { Category } from "@/models/Category";
 import { Brand } from "@/models/Brand";
 import { getMockStore } from "@/lib/db/memoryStore";
 import { ensureCatalogSeeded } from "@/lib/catalog/seedCatalog";
+import { normalizeCategorySlug } from "@/lib/catalog/categoryUtils";
 
 export async function GET(req: NextRequest) {
   try {
@@ -28,9 +29,19 @@ export async function GET(req: NextRequest) {
 
       // Category filter
       if (category && category !== "all") {
-        const catObj = store.categories.find((c) => c.slug === category || c._id === category);
+        const norm = normalizeCategorySlug(category);
+        const catObj = store.categories.find(
+          (c) =>
+            c.slug === category ||
+            c.slug === norm ||
+            c._id === category ||
+            normalizeCategorySlug(c.slug) === norm
+        );
         if (catObj) {
           list = list.filter((p) => p.categoryId === catObj._id);
+        } else {
+          // If no matching category found in mock store, filter by name or return empty
+          list = list.filter((p) => (p as any).categoryName?.includes(category));
         }
       }
 
@@ -141,16 +152,26 @@ export async function GET(req: NextRequest) {
     }
 
     // MongoDB Mode
-    const totalCount = await Product.countDocuments();
-    if (totalCount === 0) {
-      await ensureCatalogSeeded();
-    }
+    await ensureCatalogSeeded();
 
     const query: any = { status: "active" };
 
     if (category && category !== "all") {
-      const cat = await Category.findOne({ $or: [{ slug: category }, { _id: category.match(/^[0-9a-fA-F]{24}$/) ? category : null }] });
-      if (cat) query.categoryId = cat._id;
+      const norm = normalizeCategorySlug(category);
+      const cat = await Category.findOne({
+        $or: [
+          { slug: category },
+          { slug: norm },
+          { _id: category.match(/^[0-9a-fA-F]{24}$/) ? category : null },
+          { slug: { $regex: category.replace(/-/g, ".*"), $options: "i" } },
+        ],
+      });
+      if (cat) {
+        query.categoryId = cat._id;
+      } else {
+        // If no category document matches, ensure empty list rather than unconstrained
+        query.categoryId = null;
+      }
     }
 
     if (brand && brand !== "all") {

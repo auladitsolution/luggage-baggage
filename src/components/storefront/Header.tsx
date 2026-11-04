@@ -21,8 +21,10 @@ import { getCartItems } from "@/lib/cart";
 import { useEffect } from "react";
 
 import { STORE_INFO } from "@/lib/config/storeInfo";
+import { useShopSettings } from "@/context/ShopSettingsContext";
 
 export default function Header() {
+  const { settings } = useShopSettings();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [cartItemCount, setCartItemCount] = useState(0);
@@ -68,11 +70,11 @@ export default function Header() {
           </div>
           <div className="flex items-center gap-4">
             <a 
-              href={`tel:${STORE_INFO.mobile}`}
+              href={`tel:${settings.mobile}`}
               className="flex items-center gap-1 text-slate-300 hover:text-brand-gold transition-colors"
             >
               <PhoneCall className="w-3 h-3 text-brand-gold" />
-              <span>হটলাইন: {STORE_INFO.phoneFormatted}</span>
+              <span>হটলাইন: {settings.phoneFormatted}</span>
             </a>
             <span className="text-slate-500">|</span>
             <Link 
@@ -102,7 +104,7 @@ export default function Header() {
             <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden bg-white shadow-sm border border-slate-200/80 flex items-center justify-center p-0.5 group-hover:scale-105 transition-transform">
               <Image
                 src="/logo.png"
-                alt={STORE_INFO.name}
+                alt={settings.name}
                 width={44}
                 height={44}
                 priority
@@ -111,10 +113,10 @@ export default function Header() {
             </div>
             <div>
               <span className="text-xl sm:text-2xl font-bold tracking-tight text-brand-navy group-hover:text-brand-teal transition-colors">
-                {STORE_INFO.nameBangla}
+                {settings.nameBangla}
               </span>
               <span className="hidden sm:block text-[11px] text-brand-muted -mt-1 font-normal tracking-wide">
-                {STORE_INFO.name} • যমুনা ফিউচার পার্ক
+                {settings.name} • {settings.shortAddress}
               </span>
             </div>
           </Link>
@@ -199,19 +201,19 @@ export default function Header() {
           <Link href="/shop" className="hover:text-brand-teal transition-colors">
             {bn.nav.shop}
           </Link>
-          <Link href="/shop?category=suitcases" className="hover:text-brand-teal transition-colors">
+          <Link href="/shop?category=travel-suitcases" className="hover:text-brand-teal transition-colors">
             ট্রাভেল স্যুটকেস ও ট্রলি
           </Link>
-          <Link href="/shop?category=backpacks" className="hover:text-brand-teal transition-colors">
+          <Link href="/shop?category=travel-backpacks" className="hover:text-brand-teal transition-colors">
             ট্রাভেল ব্যাকপ্যাক
           </Link>
           <Link href="/shop?category=laptop-bags" className="hover:text-brand-teal transition-colors">
             ল্যাপটপ ও বিজনেস ব্যাগ
           </Link>
-          <Link href="/shop?category=cabin" className="hover:text-brand-teal transition-colors">
+          <Link href="/shop?category=cabin-luggage" className="hover:text-brand-teal transition-colors">
             কেবিন লাগেজ
           </Link>
-          <Link href="/shop?category=duffel" className="hover:text-brand-teal transition-colors">
+          <Link href="/shop?category=duffel-bags" className="hover:text-brand-teal transition-colors">
             ডাফেল ব্যাগ
           </Link>
         </nav>
@@ -235,18 +237,39 @@ export default function Header() {
             {bn.nav.shop}
           </Link>
           <Link
-            href="/shop?category=suitcases"
+            href="/shop?category=travel-suitcases"
             onClick={() => setMobileMenuOpen(false)}
             className="block py-2 text-slate-700 text-sm border-b border-slate-100"
           >
             ট্রাভেল স্যুটকেস ও ট্রলি
           </Link>
           <Link
-            href="/shop?category=backpacks"
+            href="/shop?category=travel-backpacks"
             onClick={() => setMobileMenuOpen(false)}
             className="block py-2 text-slate-700 text-sm border-b border-slate-100"
           >
             ট্রাভেল ব্যাকপ্যাক
+          </Link>
+          <Link
+            href="/shop?category=laptop-bags"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block py-2 text-slate-700 text-sm border-b border-slate-100"
+          >
+            ল্যাপটপ ও বিজনেস ব্যাগ
+          </Link>
+          <Link
+            href="/shop?category=cabin-luggage"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block py-2 text-slate-700 text-sm border-b border-slate-100"
+          >
+            কেবিন লাগেজ
+          </Link>
+          <Link
+            href="/shop?category=duffel-bags"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block py-2 text-slate-700 text-sm border-b border-slate-100"
+          >
+            ডাফেল ব্যাগ
           </Link>
           <Link
             href="/pos"

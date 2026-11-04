@@ -37,7 +37,9 @@ export async function connectToDatabase(): Promise<typeof mongoose | null> {
     const opts: mongoose.ConnectOptions = {
       bufferCommands: false,
       maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 15000, // 15 seconds to handle cold-start and network latency
+      connectTimeoutMS: 15000,
+      socketTimeoutMS: 45000,
     };
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongooseInstance) => {
@@ -48,10 +50,12 @@ export async function connectToDatabase(): Promise<typeof mongoose | null> {
 
   try {
     cached.conn = await cached.promise;
-  } catch (e) {
+  } catch (e: any) {
     cached.promise = null;
-    console.error("❌ MongoDB connection error:", e);
-    throw e;
+    console.error("❌ MongoDB connection error:", e?.message || e);
+    // Return null gracefully so that the app can fallback to memory store
+    // instead of throwing unhandled 500 errors to visitors
+    return null;
   }
 
   return cached.conn;

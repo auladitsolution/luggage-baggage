@@ -1,9 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Phone, Mail, ShieldCheck, RefreshCw, CreditCard, MessageCircle } from "lucide-react";
 import { STORE_INFO } from "@/lib/config/storeInfo";
+import { useShopSettings } from "@/context/ShopSettingsContext";
 
 export default function Footer() {
+  const { settings } = useShopSettings();
   return (
     <footer className="bg-brand-navy text-slate-300 pt-12 pb-24 md:pb-12 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -14,35 +18,35 @@ export default function Footer() {
               <div className="w-10 h-10 rounded-xl overflow-hidden bg-white shadow-md border border-slate-700/60 flex items-center justify-center p-0.5">
                 <Image
                   src="/logo.png"
-                  alt={STORE_INFO.name}
+                  alt={settings.name}
                   width={40}
                   height={40}
                   className="w-full h-full object-contain"
                 />
               </div>
               <div>
-                <span className="text-xl font-bold text-white tracking-tight">{STORE_INFO.nameBangla}</span>
-                <span className="block text-[11px] text-brand-gold font-medium">{STORE_INFO.name}</span>
+                <span className="text-xl font-bold text-white tracking-tight">{settings.nameBangla}</span>
+                <span className="block text-[11px] text-brand-gold font-medium">{settings.name}</span>
               </div>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed mb-4">
-              {STORE_INFO.tagline}। যমুনা ফিউচার পার্কের বৃহত্তম প্রিমিয়াম লাগেজ ও ট্রলি ব্যাগ শোরুম।
+              {settings.tagline}। যমুনা ফিউচার পার্কের বৃহত্তম প্রিমিয়াম লাগেজ ও ট্রলি ব্যাগ শোরুম।
             </p>
             <div className="space-y-2.5 text-xs text-slate-300">
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-brand-gold flex-shrink-0 mt-0.5" />
-                <span className="leading-snug">{STORE_INFO.address}</span>
+                <span className="leading-snug">{settings.address}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-brand-teal flex-shrink-0" />
-                <a href={`tel:${STORE_INFO.mobile}`} className="hover:text-brand-gold transition-colors font-medium">
-                  {STORE_INFO.phoneFormatted} ({STORE_INFO.mobile})
+                <a href={`tel:${settings.mobile}`} className="hover:text-brand-gold transition-colors font-medium">
+                  {settings.phoneFormatted} ({settings.mobile})
                 </a>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                <a href={`mailto:${STORE_INFO.email}`} className="hover:text-brand-gold transition-colors">
-                  {STORE_INFO.email}
+                <a href={`mailto:${settings.email}`} className="hover:text-brand-gold transition-colors">
+                  {settings.email}
                 </a>
               </div>
             </div>
@@ -60,17 +64,17 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/shop?category=suitcases" className="hover:text-brand-gold transition-colors">
+                <Link href="/shop?category=travel-suitcases" className="hover:text-brand-gold transition-colors">
                   হার্ডসাইড ট্রলি লাগেজ
                 </Link>
               </li>
               <li>
-                <Link href="/shop?category=backpacks" className="hover:text-brand-gold transition-colors">
+                <Link href="/shop?category=travel-backpacks" className="hover:text-brand-gold transition-colors">
                   অ্যান্টি-থেফট ব্যাকপ্যাক
                 </Link>
               </li>
               <li>
-                <Link href="/shop?category=cabin" className="hover:text-brand-gold transition-colors">
+                <Link href="/shop?category=cabin-luggage" className="hover:text-brand-gold transition-colors">
                   এয়ারলাইন অনুমোদিত কেবিন ব্যাগ
                 </Link>
               </li>
@@ -129,7 +133,7 @@ export default function Footer() {
             {/* Social & WhatsApp Buttons moved below payment methods */}
             <div className="flex flex-wrap items-center gap-2.5 pt-2">
               <a
-                href={STORE_INFO.facebookPageLink}
+                href={settings.facebookPageLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1877F2]/20 hover:bg-[#1877F2]/30 text-[#1877F2] text-xs font-semibold border border-[#1877F2]/30 transition-colors"
@@ -140,7 +144,7 @@ export default function Footer() {
                 <span>Facebook পেজ</span>
               </a>
               <a
-                href={STORE_INFO.whatsappLink}
+                href={settings.whatsappLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#25D366]/20 hover:bg-[#25D366]/30 text-[#25D366] text-xs font-semibold border border-[#25D366]/30 transition-colors"
@@ -155,7 +159,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <div>
-            © {new Date().getFullYear()} {STORE_INFO.name} ({STORE_INFO.nameBangla})। সর্বস্বত্ব সংরক্ষিত।
+            © {new Date().getFullYear()} {settings.name} ({settings.nameBangla})। সর্বস্বত্ব সংরক্ষিত।
           </div>
           <div>
             Developed By{" "}

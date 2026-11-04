@@ -130,6 +130,28 @@ export async function ensureCatalogSeeded(): Promise<void> {
         }
       }
     }
+
+    // 5. Auto-heal: Reconcile any legacy or orphaned inventory balances
+    try {
+      const allActiveVariants = await ProductVariant.find({}, { _id: 1 }).lean();
+      const validVariantIds = new Set(allActiveVariants.map((v) => v._id.toString()));
+
+      const allBalances = await InventoryBalance.find({}).lean();
+      for (const b of allBalances) {
+        if (!b.variantId || !validVariantIds.has(b.variantId.toString())) {
+          if (b.productId) {
+            const matchedVar = await ProductVariant.findOne({ productId: b.productId });
+            if (matchedVar) {
+              await InventoryBalance.updateOne({ _id: b._id }, { $set: { variantId: matchedVar._id } });
+              continue;
+            }
+          }
+          await InventoryBalance.deleteOne({ _id: b._id });
+        }
+      }
+    } catch (e) {
+      console.warn("Inventory balance reconciliation skipped:", e);
+    }
   } catch (error) {
     console.error("Error during catalog auto-seeding:", error);
   } finally {
