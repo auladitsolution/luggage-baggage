@@ -81,20 +81,27 @@ export async function GET(
       status: { $ne: "archived" },
     }).lean();
 
-    const variantsWithStock = await Promise.all(
-      variants.map(async (v: any) => {
-        const balance = await InventoryBalance.findOne({ variantId: v._id });
-        const currentStock = balance ? balance.currentStock : 0;
-        const reservedStock = balance ? balance.reservedStock : 0;
-        const availableStock = Math.max(0, currentStock - reservedStock);
-        return {
-          ...v,
-          currentStock,
-          reservedStock,
-          availableStock,
-        };
-      })
-    );
+    const variantIds = variants.map((v: any) => v._id);
+    const balances = await InventoryBalance.find({ variantId: { $in: variantIds } }).lean();
+    const balanceMap = new Map<string, any>();
+    for (const b of balances) {
+      if (b.variantId) {
+        balanceMap.set(b.variantId.toString(), b);
+      }
+    }
+
+    const variantsWithStock = variants.map((v: any) => {
+      const balance = balanceMap.get(v._id.toString());
+      const currentStock = balance ? balance.currentStock : 0;
+      const reservedStock = balance ? balance.reservedStock : 0;
+      const availableStock = Math.max(0, currentStock - reservedStock);
+      return {
+        ...v,
+        currentStock,
+        reservedStock,
+        availableStock,
+      };
+    });
 
     return NextResponse.json({
       success: true,

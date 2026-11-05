@@ -191,42 +191,66 @@ export async function GET(req: NextRequest) {
       .populate("brandId", "name slug")
       .lean();
 
-    const populated = await Promise.all(
-      products.map(async (p: any) => {
-        const variants = await ProductVariant.find({ productId: p._id, status: { $ne: "archived" } }).lean();
-        const variantsWithStock = await Promise.all(
-          variants.map(async (v: any) => {
-            const balance = await InventoryBalance.findOne({ variantId: v._id });
-            const currentStock = balance ? balance.currentStock : 0;
-            const reservedStock = balance ? balance.reservedStock : 0;
-            const availableStock = Math.max(0, currentStock - reservedStock);
-            return {
-              ...v,
-              currentStock,
-              reservedStock,
-              availableStock,
-            };
-          })
-        );
+    const productIds = products.map((p: any) => p._id);
 
-        const prices = variantsWithStock.map((v) => v.retailPricePoisha);
-        const minPricePoisha = prices.length > 0 ? Math.min(...prices) : 0;
-        const maxPricePoisha = prices.length > 0 ? Math.max(...prices) : 0;
-        const totalAvailableStock = variantsWithStock.reduce((sum, v) => sum + v.availableStock, 0);
+    // Optimized batch fetch: fetch all variants and inventory in single queries instead of N+1
+    const allVariants = await ProductVariant.find({
+      productId: { $in: productIds },
+      status: { $ne: "archived" },
+    }).lean();
 
-        return {
-          ...p,
-          variants: variantsWithStock,
-          categoryName: p.categoryId?.nameBangla || "লাগেজ",
-          categorySlug: p.categoryId?.slug || "luggage",
-          brandName: p.brandId?.name || "ব্র্যান্ড",
-          minPricePoisha,
-          maxPricePoisha,
-          totalAvailableStock,
-          inStock: totalAvailableStock > 0,
-        };
-      })
-    );
+    const variantIds = allVariants.map((v: any) => v._id);
+    const allBalances = await InventoryBalance.find({
+      variantId: { $in: variantIds },
+    }).lean();
+
+    const balanceMap = new Map<string, any>();
+    for (const b of allBalances) {
+      if (b.variantId) {
+        balanceMap.set(b.variantId.toString(), b);
+      }
+    }
+
+    const variantsByProductId = new Map<string, any[]>();
+    for (const v of allVariants) {
+      const pId = v.productId?.toString();
+      if (!pId) continue;
+      const balance = balanceMap.get(v._id.toString());
+      const currentStock = balance ? balance.currentStock : 0;
+      const reservedStock = balance ? balance.reservedStock : 0;
+      const availableStock = Math.max(0, currentStock - reservedStock);
+
+      const variantWithStock = {
+        ...v,
+        currentStock,
+        reservedStock,
+        availableStock,
+      };
+
+      const list = variantsByProductId.get(pId) || [];
+      list.push(variantWithStock);
+      variantsByProductId.set(pId, list);
+    }
+
+    const populated = products.map((p: any) => {
+      const variantsWithStock = variantsByProductId.get(p._id.toString()) || [];
+      const prices = variantsWithStock.map((v: any) => v.retailPricePoisha);
+      const minPricePoisha = prices.length > 0 ? Math.min(...prices) : 0;
+      const maxPricePoisha = prices.length > 0 ? Math.max(...prices) : 0;
+      const totalAvailableStock = variantsWithStock.reduce((sum: number, v: any) => sum + v.availableStock, 0);
+
+      return {
+        ...p,
+        variants: variantsWithStock,
+        categoryName: p.categoryId?.nameBangla || "লাগেজ",
+        categorySlug: p.categoryId?.slug || "luggage",
+        brandName: p.brandId?.name || "ব্র্যান্ড",
+        minPricePoisha,
+        maxPricePoisha,
+        totalAvailableStock,
+        inStock: totalAvailableStock > 0,
+      };
+    });
 
     let finalProducts = populated;
     if (size && size !== "all") {

@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { IUserSession } from "@/types/auth";
 import { STORE_INFO } from "@/lib/config/storeInfo";
 import { useShopSettings } from "@/context/ShopSettingsContext";
+import { useAuth } from "@/context/AuthContext";
 
 interface IMenuItem {
   label: string;
@@ -48,31 +49,18 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { settings } = useShopSettings();
-  const [session, setSession] = useState<IUserSession | null>(null);
+  const { user: session, logout } = useAuth();
 
   useEffect(() => {
-    fetch("/api/auth/me")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data && data.user) {
-          if (data.user.authMethod === "google" || data.user.roleSlug === "customer") {
-            router.push("/account?error=google_management_blocked");
-            return;
-          }
-          setSession(data.user);
-        }
-      })
-      .catch(() => {});
-  }, [router]);
+    if (session) {
+      if (session.authMethod === "google" || session.roleSlug === "customer") {
+        router.push("/account?error=google_management_blocked");
+      }
+    }
+  }, [session, router]);
 
   const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/session", { method: "DELETE" });
-      router.push("/login");
-      router.refresh();
-    } catch {
-      router.push("/login");
-    }
+    await logout();
   };
 
   const menuSections: IMenuSection[] = [

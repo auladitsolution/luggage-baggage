@@ -9,6 +9,7 @@ const MONGODB_URI = process.env.MONGODB_URI;
 interface MongooseCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
+  lastFailTime?: number;
 }
 
 declare global {
@@ -16,7 +17,7 @@ declare global {
   var mongooseCache: MongooseCache | undefined;
 }
 
-let cached: MongooseCache = global.mongooseCache || { conn: null, promise: null };
+let cached: MongooseCache = global.mongooseCache || { conn: null, promise: null, lastFailTime: 0 };
 
 if (!global.mongooseCache) {
   global.mongooseCache = cached;
@@ -25,7 +26,6 @@ if (!global.mongooseCache) {
 export async function connectToDatabase(): Promise<typeof mongoose | null> {
   // If no URI configured yet, return null gracefully (mock mode)
   if (!MONGODB_URI || MONGODB_URI.includes("<username>")) {
-    console.warn("⚠️ MONGODB_URI is not configured. Running in offline/mock database mode.");
     return null;
   }
 
@@ -33,17 +33,24 @@ export async function connectToDatabase(): Promise<typeof mongoose | null> {
     return cached.conn;
   }
 
+  // If connection failed recently (e.g. IP whitelist / offline), don't freeze the app
+  // with another 5-15s timeout on every single incoming API request.
+  if (cached.lastFailTime && Date.now() - cached.lastFailTime < 25000) {
+    return null;
+  }
+
   if (!cached.promise) {
     const opts: mongoose.ConnectOptions = {
       bufferCommands: false,
       maxPoolSize: 10,
-      serverSelectionTimeoutMS: 15000, // 15 seconds to handle cold-start and network latency
-      connectTimeoutMS: 15000,
-      socketTimeoutMS: 45000,
+      serverSelectionTimeoutMS: 5000, // 5s timeout instead of 15s to prevent long freezes
+      connectTimeoutMS: 5000,
+      socketTimeoutMS: 30000,
     };
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongooseInstance) => {
       console.log("✓ MongoDB Atlas connected successfully.");
+      cached.lastFailTime = 0;
       return mongooseInstance;
     });
   }
@@ -52,6 +59,7 @@ export async function connectToDatabase(): Promise<typeof mongoose | null> {
     cached.conn = await cached.promise;
   } catch (e: any) {
     cached.promise = null;
+    cached.lastFailTime = Date.now();
     console.error("❌ MongoDB connection error:", e?.message || e);
     // Return null gracefully so that the app can fallback to memory store
     // instead of throwing unhandled 500 errors to visitors

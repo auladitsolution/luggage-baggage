@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { formatBDT, toBengaliNumber } from "@/lib/utils";
 import { STORE_INFO } from "@/lib/config/storeInfo";
+import { useAuth } from "@/context/AuthContext";
 
 interface POSCartItem {
   variantId: string;
@@ -92,19 +93,18 @@ export default function POSPage() {
     }
   };
 
+  const { user } = useAuth();
+
   useEffect(() => {
     // Security check: Google login accounts cannot enter POS counter
-    fetch("/api/auth/me")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data?.user) {
-          if (data.user.authMethod === "google" || data.user.roleSlug === "customer") {
-            window.location.href = "/account?error=google_management_blocked";
-          }
-        }
-      })
-      .catch(() => {});
+    if (user) {
+      if (user.authMethod === "google" || user.roleSlug === "customer") {
+        window.location.href = "/account?error=google_management_blocked";
+      }
+    }
+  }, [user]);
 
+  useEffect(() => {
     loadPOSData();
   }, []);
 

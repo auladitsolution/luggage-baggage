@@ -22,13 +22,14 @@ import { useEffect } from "react";
 
 import { STORE_INFO } from "@/lib/config/storeInfo";
 import { useShopSettings } from "@/context/ShopSettingsContext";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Header() {
   const { settings } = useShopSettings();
+  const { user: currentUser } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [cartItemCount, setCartItemCount] = useState(0);
-  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     const updateCount = () => {
@@ -40,17 +41,6 @@ export default function Header() {
     updateCount();
     window.addEventListener("cart_updated", updateCount);
     return () => window.removeEventListener("cart_updated", updateCount);
-  }, []);
-
-  useEffect(() => {
-    fetch("/api/auth/me")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data?.authenticated && data?.user) {
-          setCurrentUser(data.user);
-        }
-      })
-      .catch(() => {});
   }, []);
 
   return (

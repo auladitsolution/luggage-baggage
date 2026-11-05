@@ -9,8 +9,11 @@ import { SAMPLE_CATEGORIES, SAMPLE_PRODUCTS } from "@/lib/sample-data";
 import { STORE_INFO } from "@/lib/config/storeInfo";
 
 let isSeeding = false;
+let isSeeded = false;
 
-export async function ensureCatalogSeeded(): Promise<void> {
+export async function ensureCatalogSeeded(force: boolean = false): Promise<void> {
+  if (isSeeded && !force) return;
+
   const db = await connectToDatabase();
   if (!db) return; // In-memory mode uses mockStore
 
@@ -152,6 +155,8 @@ export async function ensureCatalogSeeded(): Promise<void> {
     } catch (e) {
       console.warn("Inventory balance reconciliation skipped:", e);
     }
+
+    isSeeded = true;
   } catch (error) {
     console.error("Error during catalog auto-seeding:", error);
   } finally {

@@ -93,38 +93,54 @@ export async function GET(req: NextRequest) {
       .sort({ createdAt: -1 })
       .lean();
 
-    // Populate variants and their inventory
-    const productsWithDetails = await Promise.all(
-      products.map(async (prod) => {
-        const variants = await ProductVariant.find({ productId: prod._id }).lean();
-        const variantsWithStock = await Promise.all(
-          variants.map(async (v) => {
-            const balance = await InventoryBalance.findOne({ variantId: v._id }).lean();
-            const currentStock = balance?.currentStock || 0;
-            const reservedStock = balance?.reservedStock || 0;
-            const threshold = balance?.lowStockAlertThreshold || 3;
+    const productIds = products.map((p: any) => p._id);
 
-            return {
-              ...v,
-              stock: currentStock,
-              reserved: reservedStock,
-              available: Math.max(0, currentStock - reservedStock),
-              isLowStock: currentStock <= threshold,
-            };
-          })
-        );
+    // Optimized batch fetch: avoid N+1 queries across variants & balances
+    const allVariants = await ProductVariant.find({ productId: { $in: productIds } }).lean();
+    const variantIds = allVariants.map((v: any) => v._id);
+    const allBalances = await InventoryBalance.find({ variantId: { $in: variantIds } }).lean();
 
-        const totalStock = variantsWithStock.reduce((acc, v) => acc + v.stock, 0);
+    const balanceMap = new Map<string, any>();
+    for (const b of allBalances) {
+      if (b.variantId) {
+        balanceMap.set(b.variantId.toString(), b);
+      }
+    }
 
-        return {
-          ...prod,
-          brand: prod.brandId,
-          category: prod.categoryId,
-          variants: variantsWithStock,
-          totalStock,
-        };
-      })
-    );
+    const variantsByProductId = new Map<string, any[]>();
+    for (const v of allVariants) {
+      const pId = v.productId?.toString();
+      if (!pId) continue;
+      const balance = balanceMap.get(v._id.toString());
+      const currentStock = balance?.currentStock || 0;
+      const reservedStock = balance?.reservedStock || 0;
+      const threshold = balance?.lowStockAlertThreshold || 3;
+
+      const variantWithStock = {
+        ...v,
+        stock: currentStock,
+        reserved: reservedStock,
+        available: Math.max(0, currentStock - reservedStock),
+        isLowStock: currentStock <= threshold,
+      };
+
+      const list = variantsByProductId.get(pId) || [];
+      list.push(variantWithStock);
+      variantsByProductId.set(pId, list);
+    }
+
+    const productsWithDetails = products.map((prod: any) => {
+      const variantsWithStock = variantsByProductId.get(prod._id.toString()) || [];
+      const totalStock = variantsWithStock.reduce((acc: number, v: any) => acc + (v.stock || 0), 0);
+
+      return {
+        ...prod,
+        brand: prod.brandId,
+        category: prod.categoryId,
+        variants: variantsWithStock,
+        totalStock,
+      };
+    });
 
     return NextResponse.json({ success: true, products: productsWithDetails });
   } catch (error: any) {
