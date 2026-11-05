@@ -73,10 +73,22 @@ export async function getSession(): Promise<IUserSession | null> {
       const isGoogleAuth = parsed.authMethod === "google";
       const db = await connectToDatabase();
       if (db) {
-        const query = parsed.userId
-          ? { $or: [{ _id: parsed.userId }, { firebaseUid: parsed.firebaseUid }] }
-          : { firebaseUid: parsed.firebaseUid };
-        const user = await User.findOne(query).populate<{ roleId: IRoleDocument }>("roleId");
+        const isMongoId = typeof parsed.userId === "string" && /^[0-9a-fA-F]{24}$/.test(parsed.userId);
+        const orConditions: any[] = [];
+        if (isMongoId) {
+          orConditions.push({ _id: parsed.userId });
+        }
+        if (parsed.firebaseUid) {
+          orConditions.push({ firebaseUid: parsed.firebaseUid });
+        }
+        if (parsed.email) {
+          orConditions.push({ email: parsed.email.toLowerCase() });
+        }
+
+        const user = orConditions.length > 0
+          ? await User.findOne({ $or: orConditions }).populate<{ roleId: IRoleDocument }>("roleId")
+          : null;
+
         if (user && user.isActive) {
           const role = user.roleId as IRoleDocument;
           return {

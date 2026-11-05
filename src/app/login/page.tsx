@@ -60,6 +60,7 @@ function LoginForm() {
       }
 
       setSuccess(`স্বাগতম, ${data.user.displayName}! সফলভাবে লগইন হয়েছে।`);
+      window.dispatchEvent(new Event("auth_state_changed"));
 
       setTimeout(() => {
         if (redirect && redirect.startsWith("/")) {
@@ -109,6 +110,7 @@ function LoginForm() {
       }
 
       setSuccess(`স্বাগতম, ${data.user.displayName}! সফলভাবে লগইন হয়েছে।`);
+      window.dispatchEvent(new Event("auth_state_changed"));
 
       setTimeout(() => {
         // Strictly prevent Google accounts from being redirected to /admin or /pos!

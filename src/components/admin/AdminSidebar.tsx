@@ -182,11 +182,11 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
         <div className="p-2.5 rounded-xl bg-slate-900/60 flex items-center justify-between text-xs">
           <div className="flex items-center gap-2.5 overflow-hidden">
             <div className="w-8 h-8 rounded-full bg-brand-teal/20 text-brand-teal font-bold flex items-center justify-center flex-shrink-0">
-              {session?.displayName?.[0] || "আ"}
+              {session?.displayName?.[0] || settings.owners?.[0] || "M"}
             </div>
             <div className="overflow-hidden">
               <span className="block font-semibold text-white truncate">
-                {session?.displayName || "আলমগীর কবির"}
+                {session?.displayName || settings.owners || "Md. Sohel Sikder & Md. Alam"}
               </span>
               <span className="block text-[10px] text-emerald-400 truncate">
                 {session?.roleNameBangla || "দোকানের মালিক"}
