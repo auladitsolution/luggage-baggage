@@ -177,7 +177,7 @@ export default function ProductDetailPage({
         {/* Left: Images Showcase */}
         <div className="lg:col-span-6 space-y-4">
           <div className="relative h-80 sm:h-[450px] w-full rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shadow-sm">
-            <Image src={mainImage} alt={product.nameBangla} fill className="object-cover" priority />
+            <Image unoptimized src={mainImage} alt={product.nameBangla} fill className="object-cover" priority />
             <div className="absolute top-4 left-4 px-3 py-1 rounded-lg bg-brand-navy/90 text-white text-xs font-semibold">
               {product.brandName}
             </div>
@@ -207,7 +207,7 @@ export default function ProductDetailPage({
                       : "border-slate-200 opacity-70 hover:opacity-100"
                   }`}
                 >
-                  <Image src={img} alt="" fill className="object-cover" />
+                  <Image unoptimized src={img} alt="" fill className="object-cover" />
                 </button>
               ))}
             </div>

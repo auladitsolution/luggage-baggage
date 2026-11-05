@@ -1,4 +1,6 @@
 import crypto from "crypto";
+import fs from "fs";
+import path from "path";
 
 const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
 const API_KEY = process.env.CLOUDINARY_API_KEY;
@@ -39,24 +41,47 @@ export async function uploadImageToCloudinary(
   const folder = options.folder || "lumina_luggage/products";
 
   if (!isCloudinaryConfigured()) {
-    console.warn("⚠️ Cloudinary is not configured in .env.local. Using offline mock image.");
-    const id = `mock-img-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    console.warn("⚠️ Cloudinary is not configured in .env.local. Saving image to local /uploads/ directory.");
+    const id = `img-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const extMatch = options.filename?.match(/\.([a-zA-Z0-9]+)$/);
+    const ext = extMatch ? extMatch[1].toLowerCase() : "jpg";
+    const fileName = `${id}.${ext}`;
+    const uploadsDir = path.join(process.cwd(), "public", "uploads");
 
-    // If it's a buffer or base64 string, create a data URL or placeholder
-    let secureUrl = "https://images.unsplash.com/photo-1565026057447-bc90a3dceb87?auto=format&fit=crop&q=80&w=800";
-    if (typeof fileBuffer === "string" && fileBuffer.startsWith("data:image/")) {
-      secureUrl = fileBuffer;
-    } else if (Buffer.isBuffer(fileBuffer)) {
-      secureUrl = `data:image/jpeg;base64,${fileBuffer.toString("base64")}`;
+    try {
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      let bufferToSave: Buffer;
+      if (Buffer.isBuffer(fileBuffer)) {
+        bufferToSave = fileBuffer;
+      } else if (typeof fileBuffer === "string" && fileBuffer.startsWith("data:image/")) {
+        const base64Data = fileBuffer.replace(/^data:image\/\w+;base64,/, "");
+        bufferToSave = Buffer.from(base64Data, "base64");
+      } else {
+        bufferToSave = Buffer.from(fileBuffer);
+      }
+
+      fs.writeFileSync(path.join(uploadsDir, fileName), bufferToSave);
+
+      return {
+        publicId: id,
+        secureUrl: `/uploads/${fileName}`,
+        width: 800,
+        height: 800,
+        format: ext,
+      };
+    } catch (err) {
+      console.warn("Local image save fallback error:", err);
+      return {
+        publicId: id,
+        secureUrl: "https://images.unsplash.com/photo-1565026057447-bc90a3dceb87?auto=format&fit=crop&q=80&w=800",
+        width: 800,
+        height: 800,
+        format: "jpg",
+      };
     }
-
-    return {
-      publicId: id,
-      secureUrl,
-      width: 800,
-      height: 800,
-      format: "jpg",
-    };
   }
 
   // Real Cloudinary Signed Upload

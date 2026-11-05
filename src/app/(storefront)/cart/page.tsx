@@ -101,6 +101,7 @@ export default function CartPage() {
               <div key={item.variantId} className="p-4 sm:p-5 flex gap-4 items-center">
                 <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200">
                   <Image
+                    unoptimized
                     src={
                       item.image ||
                       "https://images.unsplash.com/photo-1565026057447-bc90a3dceb87?auto=format&fit=crop&w=600&q=80"

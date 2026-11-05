@@ -591,7 +591,7 @@ export default function AdminProductsPage() {
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
                           <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200">
-                            <Image src={thumb} alt="" fill className="object-cover" />
+                            <Image unoptimized src={thumb} alt="" fill className="object-cover" />
                           </div>
                           <div>
                             <span className="font-bold text-brand-navy block line-clamp-1">
@@ -826,7 +826,7 @@ export default function AdminProductsPage() {
                   </label>
                   {imageUrl && (
                     <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-slate-200">
-                      <Image src={imageUrl} alt="" fill className="object-cover" />
+                      <Image unoptimized src={imageUrl} alt="" fill className="object-cover" />
                     </div>
                   )}
                   <input
@@ -1086,7 +1086,7 @@ export default function AdminProductsPage() {
                   </label>
                   {editImageUrl && (
                     <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-slate-200">
-                      <Image src={editImageUrl} alt="" fill className="object-cover" />
+                      <Image unoptimized src={editImageUrl} alt="" fill className="object-cover" />
                     </div>
                   )}
                   <input

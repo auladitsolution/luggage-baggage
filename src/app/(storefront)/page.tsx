@@ -309,6 +309,7 @@ export default function StorefrontHomePage() {
                 {/* Product Thumbnail with Tags */}
                 <div className="relative h-64 w-full bg-slate-100 overflow-hidden">
                   <Image
+                    unoptimized
                     src={imageUrl}
                     alt={product.nameBangla}
                     fill

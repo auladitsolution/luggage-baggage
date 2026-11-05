@@ -646,8 +646,7 @@ function ShopCatalogContent() {
 
                 const hasValidImg = Boolean(
                   firstImg &&
-                  !firstImg.includes("base64,iVBOR") &&
-                  (firstImg.startsWith("http") || firstImg.startsWith("/"))
+                  (firstImg.startsWith("http") || firstImg.startsWith("/") || firstImg.startsWith("data:"))
                 );
 
                 const imgUrl = hasValidImg
@@ -669,6 +668,7 @@ function ShopCatalogContent() {
                     {/* Thumbnail */}
                     <div className="relative h-64 w-full bg-gradient-to-br from-slate-100 to-slate-200/80 overflow-hidden flex items-center justify-center">
                       <Image
+                        unoptimized
                         src={imgUrl}
                         alt={product.nameBangla}
                         fill
