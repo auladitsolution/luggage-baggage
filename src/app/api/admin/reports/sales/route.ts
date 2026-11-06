@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
 
     if (!db) {
       const store = getMockStore();
-      let posSales = [...(store.salesInvoices || [])];
+      let posSales = [...(store.salesInvoices || [])].filter((s) => s.status !== "cancelled");
       let onlineSales = [...(store.onlineOrders || [])].filter((o) => o.orderStatus === "delivered");
 
       if (startDate) {
@@ -54,7 +54,10 @@ export async function GET(req: NextRequest) {
       if (endDate) dateQuery.createdAt.$lte = new Date(endDate);
     }
 
-    const posSales = await SalesInvoice.find(dateQuery).sort({ createdAt: -1 }).lean();
+    const posSales = await SalesInvoice.find({
+      ...dateQuery,
+      status: { $ne: "cancelled" },
+    }).sort({ createdAt: -1 }).lean();
     const onlineSales = await OnlineOrder.find({
       ...dateQuery,
       orderStatus: "delivered",

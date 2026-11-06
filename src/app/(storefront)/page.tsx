@@ -38,20 +38,8 @@ interface IFeaturedProduct {
 
 export default function StorefrontHomePage() {
   const [categories, setCategories] = useState<any[]>(SAMPLE_CATEGORIES);
-  const [featuredProducts, setFeaturedProducts] = useState<IFeaturedProduct[]>(
-    SAMPLE_PRODUCTS.slice(0, 6).map((p) => ({
-      id: p.id,
-      nameBangla: p.nameBangla,
-      slug: p.slug,
-      brandName: p.brand,
-      categoryName: p.category,
-      images: p.images,
-      basePricePoisha: p.basePricePoisha,
-      variants: p.variants,
-      isNewArrival: p.isNewArrival,
-    }))
-  );
-  const [totalProductsCount, setTotalProductsCount] = useState<number>(SAMPLE_PRODUCTS.length);
+  const [featuredProducts, setFeaturedProducts] = useState<IFeaturedProduct[]>([]);
+  const [totalProductsCount, setTotalProductsCount] = useState<number>(0);
 
   useEffect(() => {
     async function loadLiveData() {
@@ -59,7 +47,7 @@ export default function StorefrontHomePage() {
         const res = await fetch("/api/products");
         if (res.ok) {
           const data = await res.json();
-          if (data.products && Array.isArray(data.products) && data.products.length > 0) {
+          if (data.products && Array.isArray(data.products)) {
             setTotalProductsCount(data.products.length);
             const live = data.products.slice(0, 6).map((p: any) => ({
               id: p._id || p.id,
@@ -287,7 +275,23 @@ export default function StorefrontHomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {featuredProducts.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center">
+            <ShoppingBag className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-brand-navy mb-1">নতুন কালেকশন শীঘ্রই আসছে</h3>
+            <p className="text-sm text-slate-500 max-w-md mx-auto mb-6">
+              আমাদের যমুনা ফিউচার পার্ক শোরুমের নতুন লাগেজ ও ব্যাগ অনলাইন ক্যাটালগে যুক্ত করা হচ্ছে।
+            </p>
+            <Link
+              href="/admin/products"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-navy hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-sm"
+            >
+              <span>পণ্য যুক্ত করতে ড্যাশবোর্ডে যান</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {featuredProducts.map((product) => {
             const firstVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
             const displayPrice = firstVariant?.discountPricePoisha || firstVariant?.retailPricePoisha || firstVariant?.pricePoisha || product.basePricePoisha || product.minPricePoisha || 0;
@@ -393,6 +397,7 @@ export default function StorefrontHomePage() {
             );
           })}
         </div>
+        )}
       </section>
 
       {/* 5. Promotional Call-to-Action Banner */}

@@ -25,11 +25,17 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { name, slug, logoUrl } = body;
 
-    if (!name || !slug) {
-      return NextResponse.json({ error: "ব্র্যান্ডের নাম এবং স্লাগ আবশ্যক" }, { status: 400 });
+    if (!name) {
+      return NextResponse.json({ error: "ব্র্যান্ডের নাম আবশ্যক" }, { status: 400 });
     }
 
-    const cleanSlug = slug.toLowerCase().trim().replace(/[^a-z0-9-]/g, "-");
+    const rawSlug = slug || name;
+    const cleanSlug = rawSlug
+      .toLowerCase()
+      .trim()
+      .replace(/[\s_]+/g, "-")
+      .replace(/[^a-z0-9-]/g, "")
+      .replace(/-+/g, "-") || `brand-${Date.now()}`;
 
     const db = await connectToDatabase();
     if (!db) {

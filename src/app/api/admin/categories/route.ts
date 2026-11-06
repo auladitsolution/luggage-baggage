@@ -25,11 +25,17 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { nameBangla, nameEnglish, slug, parentId, image, sortOrder } = body;
 
-    if (!nameBangla || !slug) {
-      return NextResponse.json({ error: "ক্যাটাগরির নাম এবং স্লাগ আবশ্যক" }, { status: 400 });
+    if (!nameBangla) {
+      return NextResponse.json({ error: "ক্যাটাগরির বাংলা নাম আবশ্যক" }, { status: 400 });
     }
 
-    const cleanSlug = slug.toLowerCase().trim().replace(/[^a-z0-9-]/g, "-");
+    const rawSlug = slug || nameEnglish || nameBangla;
+    const cleanSlug = rawSlug
+      .toLowerCase()
+      .trim()
+      .replace(/[\s_]+/g, "-")
+      .replace(/[^a-z0-9-]/g, "")
+      .replace(/-+/g, "-") || `cat-${Date.now()}`;
 
     const db = await connectToDatabase();
     if (!db) {

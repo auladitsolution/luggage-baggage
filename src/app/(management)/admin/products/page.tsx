@@ -18,8 +18,18 @@ import {
   Archive,
   Layers,
   Sparkles,
+  Tag,
+  FolderPlus,
+  Star,
 } from "lucide-react";
 import { formatBDT, toBengaliNumber } from "@/lib/utils";
+
+interface ProductImageItem {
+  secureUrl: string;
+  publicId?: string;
+  isPrimary?: boolean;
+  sortOrder?: number;
+}
 
 interface VariantForm {
   _id?: string;
@@ -45,6 +55,18 @@ export default function AdminProductsPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+  // Quick Brand / Category Modal States
+  const [isQuickBrandModalOpen, setIsQuickBrandModalOpen] = useState(false);
+  const [quickBrandName, setQuickBrandName] = useState("");
+  const [submittingQuickBrand, setSubmittingQuickBrand] = useState(false);
+  const [quickBrandTarget, setQuickBrandTarget] = useState<"create" | "edit">("create");
+
+  const [isQuickCatModalOpen, setIsQuickCatModalOpen] = useState(false);
+  const [quickCatNameBangla, setQuickCatNameBangla] = useState("");
+  const [quickCatNameEnglish, setQuickCatNameEnglish] = useState("");
+  const [submittingQuickCat, setSubmittingQuickCat] = useState(false);
+  const [quickCatTarget, setQuickCatTarget] = useState<"create" | "edit">("create");
+
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -58,7 +80,8 @@ export default function AdminProductsPage() {
   const [brandId, setBrandId] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [descriptionBangla, setDescriptionBangla] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [images, setImages] = useState<ProductImageItem[]>([]);
+  const [newImageUrl, setNewImageUrl] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
 
   const [variants, setVariants] = useState<VariantForm[]>([
@@ -90,7 +113,8 @@ export default function AdminProductsPage() {
   const [editBrandId, setEditBrandId] = useState("");
   const [editCategoryId, setEditCategoryId] = useState("");
   const [editDescriptionBangla, setEditDescriptionBangla] = useState("");
-  const [editImageUrl, setEditImageUrl] = useState("");
+  const [editImages, setEditImages] = useState<ProductImageItem[]>([]);
+  const [editNewImageUrl, setEditNewImageUrl] = useState("");
   const [editStatus, setEditStatus] = useState("active");
   const [editVariants, setEditVariants] = useState<VariantForm[]>([]);
   const [uploadingEditImage, setUploadingEditImage] = useState(false);
@@ -152,35 +176,203 @@ export default function AdminProductsPage() {
   };
 
   const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>, isEdit = false) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
     try {
       if (isEdit) setUploadingEditImage(true);
       else setUploadingImage(true);
       setErrorMsg("");
 
-      const formData = new FormData();
-      formData.append("file", file);
+      const fileArray = Array.from(files);
+      const uploadPromises = fileArray.map(async (file, idx) => {
+        const formData = new FormData();
+        formData.append("file", file);
 
-      const res = await fetch("/api/upload/cloudinary", {
-        method: "POST",
-        body: formData,
+        const res = await fetch("/api/upload/cloudinary", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "ইমেজ আপলোড ব্যর্থ হয়েছে");
+
+        return {
+          secureUrl: data.image.secureUrl as string,
+          publicId: (data.image.publicId as string) || `upload-${Date.now()}-${idx}`,
+          isPrimary: false,
+        };
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "ইমেজ আপলোড ব্যর্থ হয়েছে");
+      const uploadedList = await Promise.all(uploadPromises);
 
       if (isEdit) {
-        setEditImageUrl(data.image.secureUrl);
+        setEditImages((prev) => {
+          const next = [...prev, ...uploadedList];
+          if (next.length > 0 && !next.some((img) => img.isPrimary)) {
+            next[0].isPrimary = true;
+          }
+          return next;
+        });
       } else {
-        setImageUrl(data.image.secureUrl);
+        setImages((prev) => {
+          const next = [...prev, ...uploadedList];
+          if (next.length > 0 && !next.some((img) => img.isPrimary)) {
+            next[0].isPrimary = true;
+          }
+          return next;
+        });
       }
     } catch (err: any) {
       setErrorMsg(err.message || "ইমেজ আপলোড করতে সমস্যা হয়েছে");
     } finally {
       if (isEdit) setUploadingEditImage(false);
       else setUploadingImage(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleAddImageUrl = (isEdit = false) => {
+    const url = (isEdit ? editNewImageUrl : newImageUrl).trim();
+    if (!url) return;
+
+    const newImg: ProductImageItem = {
+      secureUrl: url,
+      publicId: `url-${Date.now()}`,
+      isPrimary: false,
+    };
+
+    if (isEdit) {
+      setEditImages((prev) => {
+        const next = [...prev, newImg];
+        if (next.length > 0 && !next.some((img) => img.isPrimary)) {
+          next[0].isPrimary = true;
+        }
+        return next;
+      });
+      setEditNewImageUrl("");
+    } else {
+      setImages((prev) => {
+        const next = [...prev, newImg];
+        if (next.length > 0 && !next.some((img) => img.isPrimary)) {
+          next[0].isPrimary = true;
+        }
+        return next;
+      });
+      setNewImageUrl("");
+    }
+  };
+
+  const handleSetPrimaryImage = (index: number, isEdit = false) => {
+    if (isEdit) {
+      setEditImages((prev) =>
+        prev.map((img, idx) => ({
+          ...img,
+          isPrimary: idx === index,
+        }))
+      );
+    } else {
+      setImages((prev) =>
+        prev.map((img, idx) => ({
+          ...img,
+          isPrimary: idx === index,
+        }))
+      );
+    }
+  };
+
+  const handleRemoveImage = (index: number, isEdit = false) => {
+    if (isEdit) {
+      setEditImages((prev) => {
+        const next = prev.filter((_, idx) => idx !== index);
+        if (next.length > 0 && !next.some((img) => img.isPrimary)) {
+          next[0].isPrimary = true;
+        }
+        return next;
+      });
+    } else {
+      setImages((prev) => {
+        const next = prev.filter((_, idx) => idx !== index);
+        if (next.length > 0 && !next.some((img) => img.isPrimary)) {
+          next[0].isPrimary = true;
+        }
+        return next;
+      });
+    }
+  };
+
+  // Quick Brand / Category Create Handlers
+  const handleQuickCreateBrand = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickBrandName.trim()) return;
+
+    try {
+      setSubmittingQuickBrand(true);
+      const res = await fetch("/api/admin/brands", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: quickBrandName.trim() }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "ব্র্যান্ড তৈরিতে সমস্যা হয়েছে");
+
+      setBrands((prev) => {
+        if (prev.some((b) => b._id === data.brand._id)) return prev;
+        return [...prev, data.brand];
+      });
+
+      if (quickBrandTarget === "edit") {
+        setEditBrandId(data.brand._id);
+      } else {
+        setBrandId(data.brand._id);
+      }
+
+      setQuickBrandName("");
+      setIsQuickBrandModalOpen(false);
+    } catch (err: any) {
+      alert(err.message || "ব্র্যান্ড তৈরি করা সম্ভব হয়নি");
+    } finally {
+      setSubmittingQuickBrand(false);
+    }
+  };
+
+  const handleQuickCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickCatNameBangla.trim()) return;
+
+    try {
+      setSubmittingQuickCat(true);
+      const res = await fetch("/api/admin/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nameBangla: quickCatNameBangla.trim(),
+          nameEnglish: quickCatNameEnglish.trim() || undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "ক্যাটাগরি তৈরিতে সমস্যা হয়েছে");
+
+      setCategories((prev) => {
+        if (prev.some((c) => c._id === data.category._id)) return prev;
+        return [...prev, data.category];
+      });
+
+      if (quickCatTarget === "edit") {
+        setEditCategoryId(data.category._id);
+      } else {
+        setCategoryId(data.category._id);
+      }
+
+      setQuickCatNameBangla("");
+      setQuickCatNameEnglish("");
+      setIsQuickCatModalOpen(false);
+    } catch (err: any) {
+      alert(err.message || "ক্যাটাগরি তৈরি করা সম্ভব হয়নি");
+    } finally {
+      setSubmittingQuickCat(false);
     }
   };
 
@@ -196,22 +388,34 @@ export default function AdminProductsPage() {
 
     try {
       setSubmitting(true);
+
+      const finalImages = [...images];
+      if (newImageUrl.trim()) {
+        finalImages.push({
+          secureUrl: newImageUrl.trim(),
+          publicId: `url-${Date.now()}`,
+          isPrimary: finalImages.length === 0,
+        });
+      }
+
+      const formattedImages = finalImages.map((img, idx) => ({
+        publicId: img.publicId || `upload-${Date.now()}-${idx}`,
+        secureUrl: img.secureUrl,
+        isPrimary: img.isPrimary ?? (idx === 0),
+        sortOrder: idx,
+      }));
+
+      if (formattedImages.length > 0 && !formattedImages.some((img) => img.isPrimary)) {
+        formattedImages[0].isPrimary = true;
+      }
+
       const payload = {
         nameBangla,
         nameEnglish,
         brandId,
         categoryId,
         descriptionBangla,
-        images: imageUrl
-          ? [
-              {
-                publicId: `upload-${Date.now()}`,
-                secureUrl: imageUrl,
-                isPrimary: true,
-                sortOrder: 0,
-              },
-            ]
-          : [],
+        images: formattedImages,
         variants: variants.map((v) => ({
           nameVariant: v.nameVariant,
           size: v.size,
@@ -240,7 +444,8 @@ export default function AdminProductsPage() {
       setNameBangla("");
       setNameEnglish("");
       setDescriptionBangla("");
-      setImageUrl("");
+      setImages([]);
+      setNewImageUrl("");
       await loadData();
     } catch (err: any) {
       setErrorMsg(err.message || "সমস্যা হয়েছে");
@@ -260,7 +465,18 @@ export default function AdminProductsPage() {
     setEditBrandId(prod.brand?._id || prod.brandId?._id || prod.brandId || "");
     setEditCategoryId(prod.category?._id || prod.categoryId?._id || prod.categoryId || "");
     setEditDescriptionBangla(prod.descriptionBangla || "");
-    setEditImageUrl(prod.images?.[0]?.secureUrl || "");
+    
+    const existingImages: ProductImageItem[] = (prod.images || []).map((img: any, idx: number) => ({
+      secureUrl: img.secureUrl,
+      publicId: img.publicId || `img-${idx}`,
+      isPrimary: img.isPrimary ?? (idx === 0),
+      sortOrder: img.sortOrder ?? idx,
+    }));
+    if (existingImages.length > 0 && !existingImages.some((img) => img.isPrimary)) {
+      existingImages[0].isPrimary = true;
+    }
+    setEditImages(existingImages);
+    setEditNewImageUrl("");
     setEditStatus(prod.status || "active");
 
     const mappedVariants: VariantForm[] = (prod.variants || []).map((v: any) => ({
@@ -332,6 +548,27 @@ export default function AdminProductsPage() {
 
     try {
       setSubmitting(true);
+
+      const finalImages = [...editImages];
+      if (editNewImageUrl.trim()) {
+        finalImages.push({
+          secureUrl: editNewImageUrl.trim(),
+          publicId: `url-${Date.now()}`,
+          isPrimary: finalImages.length === 0,
+        });
+      }
+
+      const formattedImages = finalImages.map((img, idx) => ({
+        publicId: img.publicId || `upload-${Date.now()}-${idx}`,
+        secureUrl: img.secureUrl,
+        isPrimary: img.isPrimary ?? (idx === 0),
+        sortOrder: idx,
+      }));
+
+      if (formattedImages.length > 0 && !formattedImages.some((img) => img.isPrimary)) {
+        formattedImages[0].isPrimary = true;
+      }
+
       const payload = {
         nameBangla: editNameBangla,
         nameEnglish: editNameEnglish,
@@ -339,16 +576,7 @@ export default function AdminProductsPage() {
         categoryId: editCategoryId || undefined,
         descriptionBangla: editDescriptionBangla,
         status: editStatus,
-        images: editImageUrl
-          ? [
-              {
-                publicId: `upload-${Date.now()}`,
-                secureUrl: editImageUrl,
-                isPrimary: true,
-                sortOrder: 0,
-              },
-            ]
-          : [],
+        images: formattedImages,
         variants: editVariants.map((v) => ({
           _id: v._id,
           nameVariant: v.nameVariant,
@@ -767,17 +995,30 @@ export default function AdminProductsPage() {
                 </div>
               </div>
 
-              {/* Brand and Category */}
+              {/* Brand and Category with Quick-Create */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    ব্র্যান্ড *
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-semibold text-slate-700">
+                      ব্র্যান্ড *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuickBrandTarget("create");
+                        setIsQuickBrandModalOpen(true);
+                      }}
+                      className="text-[11px] font-bold text-brand-teal hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>নতুন ব্র্যান্ড তৈরি</span>
+                    </button>
+                  </div>
                   <select
                     required
                     value={brandId}
                     onChange={(e) => setBrandId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none bg-white"
                   >
                     <option value="">ব্র্যান্ড নির্বাচন করুন</option>
                     {brands.map((b) => (
@@ -788,55 +1029,137 @@ export default function AdminProductsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    ক্যাটাগরি *
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-semibold text-slate-700">
+                      ক্যাটাগরি *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuickCatTarget("create");
+                        setIsQuickCatModalOpen(true);
+                      }}
+                      className="text-[11px] font-bold text-brand-teal hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>নতুন ক্যাটাগরি তৈরি</span>
+                    </button>
+                  </div>
                   <select
                     required
                     value={categoryId}
                     onChange={(e) => setCategoryId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none bg-white"
                   >
                     <option value="">ক্যাটাগরি নির্বাচন করুন</option>
                     {categories.map((c) => (
                       <option key={c._id} value={c._id}>
-                        {c.nameBangla} ({c.nameEnglish || ""})
+                        {c.nameBangla} {c.nameEnglish ? `(${c.nameEnglish})` : ""}
                       </option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              {/* Image Upload */}
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  পণ্যের ছবি (Cloudinary Image Upload)
-                </label>
-                <div className="flex items-center gap-3">
-                  <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 cursor-pointer text-slate-700 font-semibold transition-colors">
+              {/* Multiple Images Upload & Management */}
+              <div className="space-y-2 border border-slate-200 rounded-xl p-3 bg-slate-50/50">
+                <div className="flex items-center justify-between">
+                  <label className="font-semibold text-slate-800 flex items-center gap-2">
+                    <span>পণ্যের ছবিসমূহ (একাধিক ছবি যুক্ত করা যাবে)</span>
+                    {images.length > 0 && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-brand-teal font-bold border border-teal-200">
+                        {images.length}টি ছবি নির্বাচিত
+                      </span>
+                    )}
+                  </label>
+                  <span className="text-[11px] text-slate-400">স্টার (★) চিহ্নিত ছবিটি মূল ছবি হিসেবে ক্যাটালগে দেখাবে</span>
+                </div>
+
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
+                  <label className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 cursor-pointer text-slate-700 font-semibold transition-colors flex-shrink-0 text-xs shadow-xs">
                     <Upload className="w-3.5 h-3.5 text-brand-teal" />
-                    <span>{uploadingImage ? "আপলোড হচ্ছে..." : "ছবি নির্বাচন করুন"}</span>
+                    <span>{uploadingImage ? "আপলোড হচ্ছে..." : "ছবি আপলোড করুন (একাধিক)"}</span>
                     <input
                       type="file"
+                      multiple
                       accept="image/*"
                       onChange={(e) => handleImageFileChange(e, false)}
                       className="hidden"
                       disabled={uploadingImage}
                     />
                   </label>
-                  {imageUrl && (
-                    <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-slate-200">
-                      <Image unoptimized src={imageUrl} alt="" fill className="object-cover" />
-                    </div>
-                  )}
-                  <input
-                    type="text"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="অথবা সরাসরি ছবির লিঙ্ক দিন..."
-                    className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-slate-700 focus:outline-none"
-                  />
+
+                  <div className="flex items-center gap-1.5 flex-1 min-w-[200px]">
+                    <input
+                      type="text"
+                      value={newImageUrl}
+                      onChange={(e) => setNewImageUrl(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddImageUrl(false);
+                        }
+                      }}
+                      placeholder="অথবা অনলাইন ছবির লিঙ্ক (URL) দিন..."
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-xs focus:ring-2 focus:ring-brand-teal focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleAddImageUrl(false)}
+                      className="px-3.5 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold text-xs whitespace-nowrap transition-colors cursor-pointer"
+                    >
+                      যুক্ত করুন
+                    </button>
+                  </div>
                 </div>
+
+                {/* Thumbnails Gallery */}
+                {images.length > 0 && (
+                  <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-2 pt-2">
+                    {images.map((img, idx) => (
+                      <div
+                        key={idx}
+                        className={`relative group rounded-xl overflow-hidden border-2 bg-white transition-all shadow-xs ${
+                          img.isPrimary ? "border-brand-teal ring-2 ring-brand-teal/30" : "border-slate-200 hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="relative aspect-square w-full">
+                          <Image
+                            unoptimized
+                            src={img.secureUrl}
+                            alt={`পণ্য ছবি ${idx + 1}`}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+
+                        {/* Primary Badge / Action */}
+                        <button
+                          type="button"
+                          onClick={() => handleSetPrimaryImage(idx, false)}
+                          className={`absolute top-1 left-1 px-1.5 py-0.5 rounded text-[9px] font-bold shadow-xs transition-colors cursor-pointer ${
+                            img.isPrimary
+                              ? "bg-brand-teal text-white"
+                              : "bg-black/60 text-white/90 hover:bg-brand-teal"
+                          }`}
+                          title="মূল ছবি করতে ক্লিক করুন"
+                        >
+                          {img.isPrimary ? "★ মূল ছবি" : "মূল করুন"}
+                        </button>
+
+                        {/* Delete Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(idx, false)}
+                          className="absolute top-1 right-1 p-1 rounded-full bg-black/60 hover:bg-rose-600 text-white transition-colors cursor-pointer"
+                          title="ছবি মুছুন"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Description */}
@@ -1011,17 +1334,30 @@ export default function AdminProductsPage() {
                 </div>
               </div>
 
-              {/* Brand and Category */}
+              {/* Brand and Category with Quick-Create */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    ব্র্যান্ড *
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-semibold text-slate-700">
+                      ব্র্যান্ড *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuickBrandTarget("edit");
+                        setIsQuickBrandModalOpen(true);
+                      }}
+                      className="text-[11px] font-bold text-brand-teal hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>নতুন ব্র্যান্ড</span>
+                    </button>
+                  </div>
                   <select
                     required
                     value={editBrandId}
                     onChange={(e) => setEditBrandId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none bg-white"
                   >
                     <option value="">ব্র্যান্ড নির্বাচন করুন</option>
                     {brands.map((b) => (
@@ -1033,19 +1369,32 @@ export default function AdminProductsPage() {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    ক্যাটাগরি *
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-semibold text-slate-700">
+                      ক্যাটাগরি *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuickCatTarget("edit");
+                        setIsQuickCatModalOpen(true);
+                      }}
+                      className="text-[11px] font-bold text-brand-teal hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>নতুন ক্যাটাগরি</span>
+                    </button>
+                  </div>
                   <select
                     required
                     value={editCategoryId}
                     onChange={(e) => setEditCategoryId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none bg-white"
                   >
                     <option value="">ক্যাটাগরি নির্বাচন করুন</option>
                     {categories.map((c) => (
                       <option key={c._id} value={c._id}>
-                        {c.nameBangla}
+                        {c.nameBangla} {c.nameEnglish ? `(${c.nameEnglish})` : ""}
                       </option>
                     ))}
                   </select>
@@ -1058,7 +1407,7 @@ export default function AdminProductsPage() {
                   <select
                     value={editStatus}
                     onChange={(e) => setEditStatus(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none bg-white"
                   >
                     <option value="active">সক্রিয় (Active)</option>
                     <option value="inactive">নিষ্ক্রিয় (Inactive)</option>
@@ -1067,36 +1416,105 @@ export default function AdminProductsPage() {
                 </div>
               </div>
 
-              {/* Image Upload */}
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  পণ্যের ছবি
-                </label>
-                <div className="flex items-center gap-3">
-                  <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 cursor-pointer text-slate-700 font-semibold transition-colors">
+              {/* Multiple Images Upload & Management */}
+              <div className="space-y-2 border border-slate-200 rounded-xl p-3 bg-slate-50/50">
+                <div className="flex items-center justify-between">
+                  <label className="font-semibold text-slate-800 flex items-center gap-2">
+                    <span>পণ্যের ছবিসমূহ (একাধিক ছবি যুক্ত করা যাবে)</span>
+                    {editImages.length > 0 && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-brand-teal font-bold border border-teal-200">
+                        {editImages.length}টি ছবি
+                      </span>
+                    )}
+                  </label>
+                  <span className="text-[11px] text-slate-400">স্টার (★) চিহ্নিত ছবিটি মূল ছবি</span>
+                </div>
+
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
+                  <label className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 cursor-pointer text-slate-700 font-semibold transition-colors flex-shrink-0 text-xs shadow-xs">
                     <Upload className="w-3.5 h-3.5 text-brand-teal" />
-                    <span>{uploadingEditImage ? "আপলোড হচ্ছে..." : "নতুন ছবি পরিবর্তন"}</span>
+                    <span>{uploadingEditImage ? "আপলোড হচ্ছে..." : "নতুন ছবি যোগ করুন (একাধিক)"}</span>
                     <input
                       type="file"
+                      multiple
                       accept="image/*"
                       onChange={(e) => handleImageFileChange(e, true)}
                       className="hidden"
                       disabled={uploadingEditImage}
                     />
                   </label>
-                  {editImageUrl && (
-                    <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-slate-200">
-                      <Image unoptimized src={editImageUrl} alt="" fill className="object-cover" />
-                    </div>
-                  )}
-                  <input
-                    type="text"
-                    value={editImageUrl}
-                    onChange={(e) => setEditImageUrl(e.target.value)}
-                    placeholder="অথবা সরাসরি ছবির লিঙ্ক দিন..."
-                    className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-slate-700 focus:outline-none"
-                  />
+
+                  <div className="flex items-center gap-1.5 flex-1 min-w-[200px]">
+                    <input
+                      type="text"
+                      value={editNewImageUrl}
+                      onChange={(e) => setEditNewImageUrl(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddImageUrl(true);
+                        }
+                      }}
+                      placeholder="অথবা অনলাইন ছবির লিঙ্ক (URL) দিন..."
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-xs focus:ring-2 focus:ring-brand-teal focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleAddImageUrl(true)}
+                      className="px-3.5 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold text-xs whitespace-nowrap transition-colors cursor-pointer"
+                    >
+                      যুক্ত করুন
+                    </button>
+                  </div>
                 </div>
+
+                {/* Thumbnails Gallery */}
+                {editImages.length > 0 && (
+                  <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-2 pt-2">
+                    {editImages.map((img, idx) => (
+                      <div
+                        key={idx}
+                        className={`relative group rounded-xl overflow-hidden border-2 bg-white transition-all shadow-xs ${
+                          img.isPrimary ? "border-brand-teal ring-2 ring-brand-teal/30" : "border-slate-200 hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="relative aspect-square w-full">
+                          <Image
+                            unoptimized
+                            src={img.secureUrl}
+                            alt={`পণ্য ছবি ${idx + 1}`}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+
+                        {/* Primary Badge / Action */}
+                        <button
+                          type="button"
+                          onClick={() => handleSetPrimaryImage(idx, true)}
+                          className={`absolute top-1 left-1 px-1.5 py-0.5 rounded text-[9px] font-bold shadow-xs transition-colors cursor-pointer ${
+                            img.isPrimary
+                              ? "bg-brand-teal text-white"
+                              : "bg-black/60 text-white/90 hover:bg-brand-teal"
+                          }`}
+                          title="মূল ছবি করতে ক্লিক করুন"
+                        >
+                          {img.isPrimary ? "★ মূল ছবি" : "মূল করুন"}
+                        </button>
+
+                        {/* Delete Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(idx, true)}
+                          className="absolute top-1 right-1 p-1 rounded-full bg-black/60 hover:bg-rose-600 text-white transition-colors cursor-pointer"
+                          title="ছবি মুছুন"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Description */}
@@ -1279,6 +1697,143 @@ export default function AdminProductsPage() {
                 স্থায়ীভাবে মুছুন
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* QUICK CREATE BRAND MODAL */}
+      {isQuickBrandModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm border border-slate-200 p-5 space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <h3 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                <Tag className="w-4 h-4 text-brand-teal" />
+                <span>নতুন ব্র্যান্ড যোগ করুন</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsQuickBrandModalOpen(false);
+                  setQuickBrandName("");
+                }}
+                className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleQuickCreateBrand} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  ব্র্যান্ডের নাম *
+                </label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  value={quickBrandName}
+                  onChange={(e) => setQuickBrandName(e.target.value)}
+                  placeholder="যেমন: American Tourister, Delsey, VIP..."
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsQuickBrandModalOpen(false);
+                    setQuickBrandName("");
+                  }}
+                  className="px-3.5 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold cursor-pointer"
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingQuickBrand}
+                  className="px-4 py-1.5 rounded-xl bg-brand-teal hover:bg-brand-tealLight text-white font-bold disabled:opacity-50 transition-colors shadow-xs cursor-pointer"
+                >
+                  {submittingQuickBrand ? "তৈরি হচ্ছে..." : "ব্র্যান্ড সংরক্ষণ করুন"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* QUICK CREATE CATEGORY MODAL */}
+      {isQuickCatModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm border border-slate-200 p-5 space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <h3 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                <FolderPlus className="w-4 h-4 text-brand-teal" />
+                <span>নতুন ক্যাটাগরি যোগ করুন</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsQuickCatModalOpen(false);
+                  setQuickCatNameBangla("");
+                  setQuickCatNameEnglish("");
+                }}
+                className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleQuickCreateCategory} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  ক্যাটাগরির নাম (বাংলা) *
+                </label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  value={quickCatNameBangla}
+                  onChange={(e) => setQuickCatNameBangla(e.target.value)}
+                  placeholder="যেমন: ট্রাভেল ব্যাকপ্যাক, ডাফল ব্যাগ..."
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  ক্যাটাগরির নাম (ইংরেজি - ঐচ্ছিক)
+                </label>
+                <input
+                  type="text"
+                  value={quickCatNameEnglish}
+                  onChange={(e) => setQuickCatNameEnglish(e.target.value)}
+                  placeholder="e.g. Travel Backpack, Duffle Bag"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsQuickCatModalOpen(false);
+                    setQuickCatNameBangla("");
+                    setQuickCatNameEnglish("");
+                  }}
+                  className="px-3.5 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold cursor-pointer"
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingQuickCat}
+                  className="px-4 py-1.5 rounded-xl bg-brand-teal hover:bg-brand-tealLight text-white font-bold disabled:opacity-50 transition-colors shadow-xs cursor-pointer"
+                >
+                  {submittingQuickCat ? "তৈরি হচ্ছে..." : "ক্যাটাগরি সংরক্ষণ করুন"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

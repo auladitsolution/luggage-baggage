@@ -66,73 +66,9 @@ export async function ensureCatalogSeeded(force: boolean = false): Promise<void>
       brandMap.set(bName, existingBrand);
     }
 
-    // 4. Ensure Products & Variants exist
-    for (const p of SAMPLE_PRODUCTS) {
-      let product = await Product.findOne({ slug: p.slug });
-      const category = categoryMap.get(p.category) || Array.from(categoryMap.values())[0];
-      const brand = brandMap.get(p.brand) || Array.from(brandMap.values())[0];
-
-      if (!product) {
-        product = await Product.create({
-          nameBangla: p.nameBangla,
-          nameEnglish: p.nameEnglish,
-          slug: p.slug,
-          brandId: brand._id,
-          categoryId: category._id,
-          descriptionBangla: p.description,
-          specifications: p.specifications || {},
-          images: p.images.map((img, idx) => ({
-            publicId: `sample-${p.slug}-${idx}`,
-            secureUrl: img,
-            altText: p.nameBangla,
-            isPrimary: idx === 0,
-            sortOrder: idx,
-          })),
-          hasVariants: true,
-          status: "active",
-        });
-      }
-
-      // Ensure Variants for this product
-      for (const v of p.variants) {
-        let variant = await ProductVariant.findOne({
-          $or: [{ sku: v.sku }, { barcode: v.barcode }],
-        });
-
-        if (!variant) {
-          variant = await ProductVariant.create({
-            productId: product._id,
-            sku: v.sku,
-            barcode: v.barcode,
-            nameVariant: `${v.size || ""} - ${v.color || ""}`.trim() || v.name,
-            size: v.size,
-            color: v.color,
-            weightKg: 2.5,
-            purchaseCostPoisha: Math.round((v.pricePoisha || p.basePricePoisha) * 0.65),
-            retailPricePoisha: v.pricePoisha || p.basePricePoisha,
-            discountPricePoisha: v.discountPricePoisha || 0,
-            status: "active",
-          });
-        }
-
-        // Ensure Inventory Balance
-        let balance = await InventoryBalance.findOne({
-          variantId: variant._id,
-          locationId: defaultLocation._id,
-        });
-
-        if (!balance) {
-          await InventoryBalance.create({
-            variantId: variant._id,
-            productId: product._id,
-            locationId: defaultLocation._id,
-            currentStock: Math.max(15, v.stock || 15),
-            reservedStock: 0,
-            lowStockAlertThreshold: 3,
-          });
-        }
-      }
-    }
+    // 4. Products & Variants:
+    // In production, products are exclusively managed by the store owner/admin.
+    // We do not inject fake or sample products into the live database.
 
     // 5. Auto-heal: Reconcile any legacy or orphaned inventory balances
     try {

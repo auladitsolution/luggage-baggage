@@ -119,7 +119,7 @@ export async function PUT(
       if (subCategoryId !== undefined) product.subCategoryId = subCategoryId;
       if (descriptionBangla !== undefined) product.descriptionBangla = descriptionBangla;
       if (specifications !== undefined) product.specifications = specifications;
-      if (images && images.length > 0) product.images = images;
+      if (images !== undefined && Array.isArray(images)) product.images = images;
       if (status) product.status = status;
       product.updatedAt = new Date();
 
@@ -233,7 +233,7 @@ export async function PUT(
     if (subCategoryId) product.subCategoryId = subCategoryId;
     if (descriptionBangla !== undefined) product.descriptionBangla = descriptionBangla;
     if (specifications !== undefined) product.specifications = specifications;
-    if (images && images.length > 0) product.images = images;
+    if (images !== undefined && Array.isArray(images)) product.images = images;
     if (status) product.status = status;
 
     await product.save();

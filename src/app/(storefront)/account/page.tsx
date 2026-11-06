@@ -34,10 +34,7 @@ function AccountContent() {
     if (!confirm("আপনি কি নিশ্চিতভাবে অ্যাকাউন্ট থেকে লগআউট করতে চান?")) return;
     try {
       setLoggingOut(true);
-      await fetch("/api/auth/session", { method: "DELETE" });
-      setUser(null);
-      router.push("/");
-      router.refresh();
+      await logout();
     } catch (err) {
       console.error("Logout error:", err);
     } finally {
@@ -67,7 +64,8 @@ function AccountContent() {
             💼 পিওএস ক্যাশিয়ার
           </span>
         );
-      case "inventory_manager":
+      case "inventory":
+      case "inventory_manager" as any:
         return (
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-800 border border-sky-200">
             📦 ইনভেন্টরি ম্যানেজার
