@@ -60,27 +60,27 @@ export default function Footer() {
             <ul className="space-y-2.5 text-sm">
               <li>
                 <Link href="/shop" className="hover:text-brand-gold transition-colors">
-                  সকল কালেকশন
-                </Link>
-              </li>
-              <li>
-                <Link href="/shop?category=travel-suitcases" className="hover:text-brand-gold transition-colors">
-                  হার্ডসাইড ট্রলি লাগেজ
-                </Link>
-              </li>
-              <li>
-                <Link href="/shop?category=travel-backpacks" className="hover:text-brand-gold transition-colors">
-                  অ্যান্টি-থেফট ব্যাকপ্যাক
-                </Link>
-              </li>
-              <li>
-                <Link href="/shop?category=cabin-luggage" className="hover:text-brand-gold transition-colors">
-                  এয়ারলাইন অনুমোদিত কেবিন ব্যাগ
+                  সকল পণ্য ও কালেকশন
                 </Link>
               </li>
               <li>
                 <Link href="/cart" className="hover:text-brand-gold transition-colors">
-                  শপিং কার্ট ও অর্ডার ট্র্যাকিং
+                  শপিং কার্ট ও চেকআউট
+                </Link>
+              </li>
+              <li>
+                <Link href="/account/orders" className="hover:text-brand-gold transition-colors">
+                  অনলাইন অর্ডার ট্র্যাকিং
+                </Link>
+              </li>
+              <li>
+                <Link href="/account" className="hover:text-brand-gold transition-colors">
+                  শোরুম ও গ্রাহক সহায়তা
+                </Link>
+              </li>
+              <li>
+                <Link href="/login" className="hover:text-brand-gold transition-colors">
+                  অ্যাকাউন্টে লগইন
                 </Link>
               </li>
             </ul>

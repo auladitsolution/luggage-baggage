@@ -30,6 +30,7 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [cartItemCount, setCartItemCount] = useState(0);
+  const [navCategories, setNavCategories] = useState<any[]>([]);
 
   useEffect(() => {
     const updateCount = () => {
@@ -40,6 +41,24 @@ export default function Header() {
 
     updateCount();
     window.addEventListener("cart_updated", updateCount);
+
+    // Fetch live categories for dynamic menubar
+    const fetchNavCategories = async () => {
+      try {
+        const res = await fetch("/api/categories");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.categories && Array.isArray(data.categories)) {
+            setNavCategories(data.categories);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load nav categories:", err);
+      }
+    };
+
+    fetchNavCategories();
+
     return () => window.removeEventListener("cart_updated", updateCount);
   }, []);
 
@@ -183,33 +202,32 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Secondary Category Navigation (Desktop) */}
-        <nav className="hidden md:flex items-center gap-6 pt-3 mt-2 border-t border-slate-100 text-sm font-medium text-slate-700">
-          <Link href="/" className="text-brand-teal font-semibold hover:text-brand-tealLight transition-colors">
+        {/* Secondary Category Navigation (Desktop) - Dynamic from Database */}
+        <nav className="hidden md:flex items-center gap-6 pt-3 mt-2 border-t border-slate-100 text-sm font-medium text-slate-700 overflow-x-auto no-scrollbar">
+          <Link href="/" className="text-brand-teal font-semibold hover:text-brand-tealLight transition-colors shrink-0">
             {bn.nav.home}
           </Link>
-          <Link href="/shop" className="hover:text-brand-teal transition-colors">
+          <Link href="/shop" className="hover:text-brand-teal transition-colors shrink-0">
             {bn.nav.shop}
           </Link>
-          <Link href="/shop?category=travel-suitcases" className="hover:text-brand-teal transition-colors">
-            ট্রাভেল স্যুটকেস ও ট্রলি
-          </Link>
-          <Link href="/shop?category=travel-backpacks" className="hover:text-brand-teal transition-colors">
-            ট্রাভেল ব্যাকপ্যাক
-          </Link>
-          <Link href="/shop?category=laptop-bags" className="hover:text-brand-teal transition-colors">
-            ল্যাপটপ ও বিজনেস ব্যাগ
-          </Link>
-          <Link href="/shop?category=cabin-luggage" className="hover:text-brand-teal transition-colors">
-            কেবিন লাগেজ
-          </Link>
-          <Link href="/shop?category=duffel-bags" className="hover:text-brand-teal transition-colors">
-            ডাফেল ব্যাগ
-          </Link>
+          {navCategories.map((cat) => (
+            <Link
+              key={cat._id}
+              href={`/shop?category=${cat.slug || cat._id}`}
+              className="hover:text-brand-teal transition-colors whitespace-nowrap shrink-0"
+            >
+              {cat.nameBangla || cat.nameEnglish}
+            </Link>
+          ))}
+          {navCategories.length === 0 && (
+            <Link href="/shop" className="hover:text-brand-teal transition-colors text-slate-500 shrink-0">
+              সকল কালেকশন
+            </Link>
+          )}
         </nav>
       </div>
 
-      {/* Mobile Drawer Navigation */}
+      {/* Mobile Drawer Navigation - Dynamic from Database */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-t border-slate-200 px-4 py-4 space-y-3 shadow-lg">
           <Link
@@ -226,41 +244,16 @@ export default function Header() {
           >
             {bn.nav.shop}
           </Link>
-          <Link
-            href="/shop?category=travel-suitcases"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-slate-700 text-sm border-b border-slate-100"
-          >
-            ট্রাভেল স্যুটকেস ও ট্রলি
-          </Link>
-          <Link
-            href="/shop?category=travel-backpacks"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-slate-700 text-sm border-b border-slate-100"
-          >
-            ট্রাভেল ব্যাকপ্যাক
-          </Link>
-          <Link
-            href="/shop?category=laptop-bags"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-slate-700 text-sm border-b border-slate-100"
-          >
-            ল্যাপটপ ও বিজনেস ব্যাগ
-          </Link>
-          <Link
-            href="/shop?category=cabin-luggage"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-slate-700 text-sm border-b border-slate-100"
-          >
-            কেবিন লাগেজ
-          </Link>
-          <Link
-            href="/shop?category=duffel-bags"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-slate-700 text-sm border-b border-slate-100"
-          >
-            ডাফেল ব্যাগ
-          </Link>
+          {navCategories.map((cat) => (
+            <Link
+              key={cat._id}
+              href={`/shop?category=${cat.slug || cat._id}`}
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-slate-700 text-sm border-b border-slate-100"
+            >
+              {cat.nameBangla || cat.nameEnglish}
+            </Link>
+          ))}
           <Link
             href="/pos"
             onClick={() => setMobileMenuOpen(false)}

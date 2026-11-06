@@ -34,43 +34,11 @@ export async function ensureCatalogSeeded(force: boolean = false): Promise<void>
       });
     }
 
-    // 2. Ensure Categories exist
-    const categoryMap = new Map<string, any>();
-    for (const cat of SAMPLE_CATEGORIES) {
-      let existingCat = await Category.findOne({ slug: cat.slug });
-      if (!existingCat) {
-        existingCat = await Category.create({
-          nameBangla: cat.name,
-          slug: cat.slug,
-          isActive: true,
-          sortOrder: 1,
-        });
-      }
-      categoryMap.set(cat.slug, existingCat);
-      categoryMap.set(cat.name, existingCat);
-    }
+    // 2. Categories, Brands & Products:
+    // In production, categories, brands, and products are exclusively managed by the store owner/admin.
+    // We do not inject hardcoded or sample categories/brands into the live database.
 
-    // 3. Ensure Brands exist
-    const brandMap = new Map<string, any>();
-    const brandNames = Array.from(new Set(SAMPLE_PRODUCTS.map((p) => p.brand)));
-    for (const bName of brandNames) {
-      const slug = bName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-      let existingBrand = await Brand.findOne({ slug });
-      if (!existingBrand) {
-        existingBrand = await Brand.create({
-          name: bName,
-          slug,
-          isActive: true,
-        });
-      }
-      brandMap.set(bName, existingBrand);
-    }
-
-    // 4. Products & Variants:
-    // In production, products are exclusively managed by the store owner/admin.
-    // We do not inject fake or sample products into the live database.
-
-    // 5. Auto-heal: Reconcile any legacy or orphaned inventory balances
+    // 3. Auto-heal: Reconcile any legacy or orphaned inventory balances
     try {
       const allActiveVariants = await ProductVariant.find({}, { _id: 1 }).lean();
       const validVariantIds = new Set(allActiveVariants.map((v) => v._id.toString()));

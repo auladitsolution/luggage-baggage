@@ -290,11 +290,11 @@ export async function GET(req: NextRequest) {
       Brand.find({ isActive: true }).sort({ name: 1 }).lean(),
     ]);
 
-    // Deduplicate categories and filter out temporary test categories
+    // Deduplicate categories
     const uniqueCategoryMap = new Map<string, any>();
     for (const c of categories) {
-      const normalized = (c.nameBangla || (c as any).name || "").trim();
-      if (!c.slug.match(/-\d{10,}$/) && !uniqueCategoryMap.has(normalized)) {
+      const normalized = (c.nameBangla || (c as any).name || "").trim().toLowerCase();
+      if (normalized && !uniqueCategoryMap.has(normalized)) {
         uniqueCategoryMap.set(normalized, c);
       }
     }
@@ -311,11 +311,11 @@ export async function GET(req: NextRequest) {
       ).length,
     }));
 
-    // Deduplicate brands and filter out temporary test brands
+    // Deduplicate brands
     const uniqueBrandMap = new Map<string, any>();
     for (const b of brands) {
-      const normalized = (b.name || "").trim();
-      if (!b.slug.match(/-\d{10,}$/) && !b.name.match(/\d{4}$/) && !uniqueBrandMap.has(normalized)) {
+      const normalized = (b.name || "").trim().toLowerCase();
+      if (normalized && !uniqueBrandMap.has(normalized)) {
         uniqueBrandMap.set(normalized, b);
       }
     }

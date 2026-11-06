@@ -20,7 +20,6 @@ import {
   Eye,
 } from "lucide-react";
 import { formatBDT, toBengaliNumber } from "@/lib/utils";
-import { SAMPLE_PRODUCTS, SAMPLE_CATEGORIES } from "@/lib/sample-data";
 import { normalizeCategorySlug, isCategoryMatch } from "@/lib/catalog/categoryUtils";
 
 interface ProductItem {
@@ -146,49 +145,12 @@ function ShopCatalogContent() {
 
         if (data.products && Array.isArray(data.products)) {
           setProducts(data.products);
-          if (data.categories && data.categories.length > 0) {
-            setCategories(data.categories);
-          }
-          if (data.brands && data.brands.length > 0) {
-            setBrands(data.brands);
-          }
+          setCategories(data.categories || []);
+          setBrands(data.brands || []);
         } else {
-          // Fallback to sample products with proper category & filter application
-          let fallback = SAMPLE_PRODUCTS.map((p) => {
-            const matchingCat = SAMPLE_CATEGORIES.find((c) => c.name === p.category);
-            return {
-              _id: p.id,
-              nameBangla: p.nameBangla,
-              slug: p.slug,
-              categoryName: p.category,
-              categorySlug: matchingCat?.slug || normalizeCategorySlug(p.category),
-              brandName: p.brand,
-              images: p.images.map((img) => ({ secureUrl: img })),
-              minPricePoisha: p.basePricePoisha,
-              maxPricePoisha: p.basePricePoisha,
-              totalAvailableStock: 15,
-              inStock: true,
-              variants: p.variants,
-            };
-          });
-
-          if (selectedCategory && selectedCategory !== "all") {
-            const norm = normalizeCategorySlug(selectedCategory);
-            fallback = fallback.filter((p) => {
-              return (
-                isCategoryMatch(p.categorySlug, norm) ||
-                p.categoryName === selectedCategory ||
-                (norm === "cabin-luggage" &&
-                  p.variants.some((v: any) => v.size?.includes("Cabin") || v.size?.includes("২০")))
-              );
-            });
-          }
-
-          if (selectedBrand && selectedBrand !== "all") {
-            fallback = fallback.filter((p) => p.brandName.toLowerCase() === selectedBrand.toLowerCase());
-          }
-
-          setProducts(fallback);
+          setProducts([]);
+          setCategories([]);
+          setBrands([]);
         }
       } catch (err) {
         console.error("Failed to fetch products:", err);
@@ -230,7 +192,7 @@ function ShopCatalogContent() {
             <span>সকল ক্যাটাগরি</span>
             {selectedCategory === "all" && <Check className="w-3.5 h-3.5 text-brand-teal" />}
           </button>
-          {(categories.length > 0 ? categories : SAMPLE_CATEGORIES).map((cat: any) => {
+          {categories.map((cat: any) => {
             const catId = cat.slug || cat._id;
             const isSelected = isCategoryMatch(selectedCategory, catId) || isCategoryMatch(selectedCategory, cat.name);
             return (
@@ -464,16 +426,16 @@ function ShopCatalogContent() {
             {selectedCategory !== "all" && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-teal-50 text-brand-teal text-xs font-semibold">
                 ক্যাটাগরি:{" "}
-                {(categories.length > 0 ? categories : SAMPLE_CATEGORIES).find((c) =>
+                {categories.find((c: any) =>
                   isCategoryMatch(c.slug || c._id, selectedCategory)
                 )?.nameBangla ||
-                  (categories.length > 0 ? categories : SAMPLE_CATEGORIES).find((c) =>
+                  categories.find((c: any) =>
                     isCategoryMatch(c.slug || c._id, selectedCategory)
                   )?.name ||
                   selectedCategory}
                 <button
                   onClick={() => handleCategoryChange("all")}
-                  className="hover:text-teal-900 transition ml-1"
+                  className="hover:text-teal-900 transition ml-1 cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>

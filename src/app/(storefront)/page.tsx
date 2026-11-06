@@ -15,7 +15,6 @@ import {
   Plane
 } from "lucide-react";
 import { bn } from "@/lib/localization/bn";
-import { SAMPLE_CATEGORIES, SAMPLE_PRODUCTS } from "@/lib/sample-data";
 import { formatBDT, toBengaliNumber } from "@/lib/utils";
 import { STORE_INFO } from "@/lib/config/storeInfo";
 
@@ -37,7 +36,7 @@ interface IFeaturedProduct {
 }
 
 export default function StorefrontHomePage() {
-  const [categories, setCategories] = useState<any[]>(SAMPLE_CATEGORIES);
+  const [categories, setCategories] = useState<any[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<IFeaturedProduct[]>([]);
   const [totalProductsCount, setTotalProductsCount] = useState<number>(0);
 
@@ -70,13 +69,15 @@ export default function StorefrontHomePage() {
               id: cat._id || `cat-${idx}`,
               name: cat.nameBangla || cat.nameEnglish,
               slug: cat.slug,
-              count: cat.productCount || 10,
+              count: cat.productCount || 0,
               image:
+                cat.image ||
                 cat.imageUrl ||
-                SAMPLE_CATEGORIES[idx % SAMPLE_CATEGORIES.length]?.image ||
                 "https://images.unsplash.com/photo-1565026057447-bc90a3dceb87?auto=format&fit=crop&w=600&q=80",
             }));
             setCategories(mappedCats);
+          } else {
+            setCategories([]);
           }
         }
       } catch (e) {
@@ -209,51 +210,53 @@ export default function StorefrontHomePage() {
         </div>
       </section>
 
-      {/* 3. Categories Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-brand-navy tracking-tight">
-              {bn.storefront.categoriesTitle}
-            </h2>
-            <p className="text-sm text-brand-muted mt-1">
-              আপনার ভ্রমণের ধরন ও প্রয়োজন অনুযায়ী মানানসই লাগেজ
-            </p>
-          </div>
-          <Link
-            href="/shop"
-            className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal hover:text-brand-tealLight transition-colors"
-          >
-            <span>সবগুলো দেখুন</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-          {categories.map((cat) => (
+      {/* 3. Categories Grid (Dynamic) */}
+      {categories.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-brand-navy tracking-tight">
+                {bn.storefront.categoriesTitle}
+              </h2>
+              <p className="text-sm text-brand-muted mt-1">
+                আপনার ভ্রমণের ধরন ও প্রয়োজন অনুযায়ী মানানসই লাগেজ
+              </p>
+            </div>
             <Link
-              key={cat.id}
-              href={`/shop?category=${cat.slug}`}
-              className="group flex flex-col items-center p-3 rounded-2xl bg-white border border-slate-200 hover:border-brand-teal hover:shadow-md transition-all text-center"
+              href="/shop"
+              className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal hover:text-brand-tealLight transition-colors"
             >
-              <div className="relative w-full h-28 sm:h-32 rounded-xl overflow-hidden bg-slate-100 mb-2.5">
-                <Image
-                  src={cat.image}
-                  alt={cat.name}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <h3 className="text-xs sm:text-sm font-bold text-brand-navy group-hover:text-brand-teal transition-colors line-clamp-1">
-                {cat.name}
-              </h3>
-              <span className="text-[11px] text-brand-muted mt-0.5">
-                {toBengaliNumber(cat.count || 10)} টি আইটেম
-              </span>
+              <span>সবগুলো দেখুন</span>
+              <ArrowRight className="w-4 h-4" />
             </Link>
-          ))}
-        </div>
-      </section>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/shop?category=${cat.slug}`}
+                className="group flex flex-col items-center p-3 rounded-2xl bg-white border border-slate-200 hover:border-brand-teal hover:shadow-md transition-all text-center"
+              >
+                <div className="relative w-full h-28 sm:h-32 rounded-xl overflow-hidden bg-slate-100 mb-2.5">
+                  <Image
+                    src={cat.image}
+                    alt={cat.name}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <h3 className="text-xs sm:text-sm font-bold text-brand-navy group-hover:text-brand-teal transition-colors line-clamp-1">
+                  {cat.name}
+                </h3>
+                <span className="text-[11px] text-brand-muted mt-0.5">
+                  {toBengaliNumber(cat.count || 0)} টি পণ্য
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* 4. Featured Suitcases & Bags */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

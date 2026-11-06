@@ -305,32 +305,14 @@ async function main() {
   console.log("✓ Set default location: প্রধান শোরুম (Main Showroom - JFP).");
 
   console.log("\n==================================================");
-  console.log("  STEP 6: INITIALIZING AUTHENTIC CATEGORIES");
+  console.log("  STEP 6 & 7: RESETTING CATEGORIES & BRANDS (CLEAN SLATE)");
   console.log("==================================================");
 
   await db.collection("categories").deleteMany({});
-  await db.collection("categories").insertMany(
-    AUTHENTIC_CATEGORIES.map((c) => ({
-      ...c,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }))
-  );
-  console.log(`✓ Seeded ${AUTHENTIC_CATEGORIES.length} official luggage & baggage categories.`);
-
-  console.log("\n==================================================");
-  console.log("  STEP 7: INITIALIZING AUTHENTIC BRANDS");
-  console.log("==================================================");
+  console.log("✓ Categories collection reset to clean state (ready for fresh creation).");
 
   await db.collection("brands").deleteMany({});
-  await db.collection("brands").insertMany(
-    AUTHENTIC_BRANDS.map((b) => ({
-      ...b,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }))
-  );
-  console.log(`✓ Seeded ${AUTHENTIC_BRANDS.length} official luggage brands.`);
+  console.log("✓ Brands collection reset to clean state (ready for fresh creation).");
 
   console.log("\n==================================================");
   console.log("  STEP 8: INITIALIZING DEFAULT WALK-IN CUSTOMER");
