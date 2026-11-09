@@ -76,15 +76,15 @@ export function generateBarcodeSVG(text: string, options: {
     isBar = !isBar;
   }
 
-  const totalWidth = x + 10; // Right quiet zone
-  const totalHeight = showText ? height + fontSize + 12 : height + 10;
+  const totalWidth = Math.round((x + 12) * 10) / 10; // Right quiet zone
+  const totalHeight = showText ? height + fontSize + 10 : height + 6;
 
   let textSvg = "";
   if (showText) {
-    textSvg = `<text x="${totalWidth / 2}" y="${height + fontSize + 6}" font-family="monospace" font-size="${fontSize}" font-weight="600" text-anchor="middle" fill="#1e293b">${text}</text>`;
+    textSvg = `<text x="${totalWidth / 2}" y="${height + fontSize + 4}" font-family="Courier, monospace, monospace" font-size="${fontSize}" font-weight="700" letter-spacing="1px" text-anchor="middle" fill="#0f172a">${text}</text>`;
   }
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalWidth} ${totalHeight}" width="${totalWidth}" height="${totalHeight}">${rects}${textSvg}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalWidth} ${totalHeight}" width="100%" height="auto" preserveAspectRatio="xMidYMid meet" style="max-width: 100%; height: auto; display: block;">${rects}${textSvg}</svg>`;
 }
 
 /**
