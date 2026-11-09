@@ -235,8 +235,11 @@ export async function POST(req: NextRequest) {
       cookieValue = Buffer.from(JSON.stringify(sessionPayload)).toString("base64");
     }
 
+    const isHttps = req.nextUrl.protocol === "https:" || req.headers.get("x-forwarded-proto") === "https";
+
     const response = NextResponse.json({
       success: true,
+      token: cookieValue,
       user: {
         userId: user._id.toString(),
         displayName: user.displayName,
@@ -251,11 +254,12 @@ export async function POST(req: NextRequest) {
     });
 
     // Set HttpOnly, Secure Session Cookie (5 days duration)
+    // Only set secure=true if connection is actually HTTPS to avoid browser rejecting cookies on HTTP/localhost
     response.cookies.set({
       name: SESSION_COOKIE_NAME,
       value: cookieValue,
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: isHttps,
       sameSite: "lax",
       maxAge: 5 * 24 * 60 * 60, // 5 days
       path: "/",
@@ -266,7 +270,7 @@ export async function POST(req: NextRequest) {
       name: "lumina_auth_method",
       value: authMethod,
       httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
+      secure: isHttps,
       sameSite: "lax",
       maxAge: 5 * 24 * 60 * 60,
       path: "/",

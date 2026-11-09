@@ -21,7 +21,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    await requirePermission("products.create");
+    await requirePermission("products.create", req);
     const body = await req.json();
     const { nameBangla, nameEnglish, slug, parentId, image, sortOrder } = body;
 

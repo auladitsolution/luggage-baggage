@@ -150,7 +150,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await requirePermission("products.create");
+    const session = await requirePermission("products.create", req);
     const body = await req.json();
 
     const {

@@ -124,9 +124,9 @@ export default function AdminProductsPage() {
       setLoading(true);
       const queryParam = statusFilter === "all" ? "?status=all" : (statusFilter === "archived" ? "?status=archived" : "");
       const [prodRes, catRes, brandRes] = await Promise.all([
-        fetch(`/api/admin/products${queryParam}`),
-        fetch("/api/admin/categories"),
-        fetch("/api/admin/brands"),
+        fetch(`/api/admin/products${queryParam}`, { credentials: "include" }),
+        fetch("/api/admin/categories", { credentials: "include" }),
+        fetch("/api/admin/brands", { credentials: "include" }),
       ]);
 
       const prodData = await prodRes.json();
@@ -311,6 +311,7 @@ export default function AdminProductsPage() {
       const res = await fetch("/api/admin/brands", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ name: quickBrandName.trim() }),
       });
 
@@ -346,6 +347,7 @@ export default function AdminProductsPage() {
       const res = await fetch("/api/admin/categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           nameBangla: quickCatNameBangla.trim(),
           nameEnglish: quickCatNameEnglish.trim() || undefined,
@@ -431,6 +433,7 @@ export default function AdminProductsPage() {
       const res = await fetch("/api/admin/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(payload),
       });
 
@@ -594,6 +597,7 @@ export default function AdminProductsPage() {
       const res = await fetch(`/api/admin/products/${selectedProduct._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(payload),
       });
 
@@ -625,7 +629,7 @@ export default function AdminProductsPage() {
     try {
       setSubmitting(true);
       const url = `/api/admin/products/${selectedProduct._id}${permanent ? "?permanent=true" : ""}`;
-      const res = await fetch(url, { method: "DELETE" });
+      const res = await fetch(url, { method: "DELETE", credentials: "include" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "ডিলিট করতে সমস্যা হয়েছে");
 
@@ -646,6 +650,7 @@ export default function AdminProductsPage() {
       const res = await fetch(`/api/admin/products/${prod._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ status: "active" }),
       });
       const data = await res.json();

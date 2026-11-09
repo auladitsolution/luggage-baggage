@@ -81,7 +81,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requirePermission("products.update");
+    await requirePermission("products.update", req);
     const { id } = await params;
     const body = await req.json();
 
@@ -356,7 +356,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requirePermission("products.delete");
+    await requirePermission("products.delete", req);
     const { id } = await params;
     const { searchParams } = new URL(req.url);
     const permanent = searchParams.get("permanent") === "true";

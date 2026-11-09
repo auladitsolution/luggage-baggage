@@ -1,20 +1,58 @@
 import { cookies } from "next/headers";
+import { type NextRequest } from "next/server";
 import { connectToDatabase } from "@/lib/db/mongodb";
 import { User, IUserDocument } from "@/models/User";
 import { Role, IRoleDocument } from "@/models/Role";
 import { verifySessionCookie, isFirebaseAdminConfigured } from "@/lib/firebase/admin";
-import { Permission, IUserSession, RoleSlug } from "@/types/auth";
+import { Permission, IUserSession, RoleSlug, ALL_PERMISSIONS } from "@/types/auth";
 import { DEFAULT_ROLES } from "@/lib/constants/permissions";
 import { getMockStore } from "@/lib/db/memoryStore";
 
 const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME || "lumina_session";
 
 /**
- * Get current authenticated user session from HttpOnly session cookie
+ * Get current authenticated user session from HttpOnly session cookie or NextRequest
  */
-export async function getSession(): Promise<IUserSession | null> {
-  const cookieStore = await cookies();
-  const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+export async function getSession(req?: NextRequest): Promise<IUserSession | null> {
+  let sessionToken: string | undefined;
+
+  // 1. Read directly from incoming request cookies if available
+  if (req) {
+    sessionToken =
+      req.cookies.get(SESSION_COOKIE_NAME)?.value ||
+      req.cookies.get("lumina_session")?.value;
+
+    if (!sessionToken) {
+      const authHeader = req.headers.get("authorization");
+      if (authHeader && authHeader.toLowerCase().startsWith("bearer ")) {
+        sessionToken = authHeader.slice(7).trim();
+      }
+    }
+  }
+
+  // 2. Read from next/headers cookies() as fallback
+  if (!sessionToken) {
+    try {
+      const cookieStore = await cookies();
+      sessionToken =
+        cookieStore.get(SESSION_COOKIE_NAME)?.value ||
+        cookieStore.get("lumina_session")?.value;
+    } catch {
+      // ignore
+    }
+  }
+
+  if (sessionToken) {
+    sessionToken = sessionToken.trim();
+    if (sessionToken.includes("%")) {
+      try {
+        sessionToken = decodeURIComponent(sessionToken);
+      } catch {}
+    }
+    if (sessionToken.startsWith('"') && sessionToken.endsWith('"')) {
+      sessionToken = sessionToken.slice(1, -1);
+    }
+  }
 
   if (!sessionToken) {
     if (process.env.NODE_ENV === "development") {
@@ -28,7 +66,7 @@ export async function getSession(): Promise<IUserSession | null> {
         roleSlug: defaultRole.slug,
         roleNameBangla: defaultRole.nameBangla,
         isOwner: true,
-        permissions: defaultRole.permissions,
+        permissions: [...ALL_PERMISSIONS],
         authMethod: "credentials",
       };
     }
@@ -66,10 +104,12 @@ export async function getSession(): Promise<IUserSession | null> {
     }
   }
 
-  // 2. Safe Fallback for offline / development / demo session tokens
+  // 2. Safe Fallback for credentials / base64 session tokens
   try {
-    const parsed = JSON.parse(Buffer.from(sessionToken, "base64").toString("utf-8"));
-    if (parsed && parsed.firebaseUid) {
+    const decodedStr = Buffer.from(sessionToken, "base64").toString("utf-8");
+    const parsed = JSON.parse(decodedStr);
+
+    if (parsed && (parsed.firebaseUid || parsed.userId || parsed.email)) {
       const isGoogleAuth = parsed.authMethod === "google";
       const db = await connectToDatabase();
       if (db) {
@@ -91,16 +131,22 @@ export async function getSession(): Promise<IUserSession | null> {
 
         if (user && user.isActive) {
           const role = user.roleId as IRoleDocument;
+          const isOwner = isGoogleAuth ? false : (user.isOwner || role?.slug === "owner" || parsed.isOwner || parsed.roleSlug === "owner");
+          const roleSlug = isGoogleAuth ? "customer" : ((role?.slug as RoleSlug) || (parsed.roleSlug as RoleSlug) || (isOwner ? "owner" : "customer"));
+          const permissions = isGoogleAuth
+            ? []
+            : (isOwner ? [...ALL_PERMISSIONS] : ((role?.permissions as Permission[]) || (parsed.permissions as Permission[]) || []));
+
           return {
             userId: user._id.toString(),
-            firebaseUid: user.firebaseUid || parsed.firebaseUid,
+            firebaseUid: user.firebaseUid || parsed.firebaseUid || `usr-${user._id}`,
             email: user.email,
             displayName: user.displayName,
             photoUrl: user.photoUrl,
-            roleSlug: isGoogleAuth ? "customer" : ((role?.slug as RoleSlug) || "customer"),
-            roleNameBangla: isGoogleAuth ? "সাধারণ ক্রেতা" : (role?.nameBangla || "সাধারণ ক্রেতা"),
-            isOwner: isGoogleAuth ? false : (user.isOwner || role?.slug === "owner"),
-            permissions: isGoogleAuth ? [] : ((role?.permissions as Permission[]) || []),
+            roleSlug,
+            roleNameBangla: isGoogleAuth ? "সাধারণ ক্রেতা" : (role?.nameBangla || parsed.roleNameBangla || "দোকানের কর্মী"),
+            isOwner,
+            permissions,
             authMethod: isGoogleAuth ? "google" : "credentials",
           };
         }
@@ -109,38 +155,45 @@ export async function getSession(): Promise<IUserSession | null> {
         const user = store.users.find((u) => u._id === parsed.userId || u.firebaseUid === parsed.firebaseUid);
         if (user && user.isActive) {
           const role = user.roleId;
+          const isOwner = isGoogleAuth ? false : (user.isOwner || role?.slug === "owner" || parsed.isOwner || parsed.roleSlug === "owner");
           return {
             userId: user._id,
-            firebaseUid: user.firebaseUid || parsed.firebaseUid,
+            firebaseUid: user.firebaseUid || parsed.firebaseUid || `usr-${user._id}`,
             email: user.email,
             displayName: user.displayName,
             photoUrl: user.photoUrl,
-            roleSlug: isGoogleAuth ? "customer" : ((role?.slug as RoleSlug) || "customer"),
-            roleNameBangla: isGoogleAuth ? "সাধারণ ক্রেতা" : (role?.nameBangla || "সাধারণ ক্রেতা"),
-            isOwner: isGoogleAuth ? false : (user.isOwner || role?.slug === "owner"),
-            permissions: isGoogleAuth ? [] : ((role?.permissions as Permission[]) || []),
+            roleSlug: isGoogleAuth ? "customer" : ((role?.slug as RoleSlug) || (parsed.roleSlug as RoleSlug) || (isOwner ? "owner" : "customer")),
+            roleNameBangla: isGoogleAuth ? "সাধারণ ক্রেতা" : (role?.nameBangla || parsed.roleNameBangla || "দোকানের কর্মী"),
+            isOwner,
+            permissions: isGoogleAuth ? [] : (isOwner ? [...ALL_PERMISSIONS] : ((role?.permissions as Permission[]) || [])),
             authMethod: isGoogleAuth ? "google" : "credentials",
           };
         }
       }
 
-      // If user not yet in DB, check role from parsed token safely
-      const roleSlug = isGoogleAuth ? "customer" : ((parsed.roleSlug as RoleSlug) || "customer");
+      // 3. Fallback: Reconstruct valid session directly from parsed token
+      const isOwner = isGoogleAuth ? false : (parsed.isOwner || parsed.roleSlug === "owner");
+      const roleSlug = isGoogleAuth ? "customer" : ((parsed.roleSlug as RoleSlug) || (isOwner ? "owner" : "customer"));
       const defaultRole = DEFAULT_ROLES[roleSlug] || DEFAULT_ROLES.customer;
+      const permissions = isGoogleAuth
+        ? []
+        : (isOwner ? [...ALL_PERMISSIONS] : (Array.isArray(parsed.permissions) && parsed.permissions.length > 0 ? parsed.permissions : defaultRole.permissions));
+
       return {
-        userId: parsed.userId || "demo-user-id",
-        firebaseUid: parsed.firebaseUid,
+        userId: parsed.userId || "usr-fallback",
+        firebaseUid: parsed.firebaseUid || "usr-fallback",
         email: parsed.email,
-        displayName: parsed.displayName || "ব্যবহারকারী",
+        displayName: parsed.displayName || "দোকান মালিক",
         photoUrl: parsed.photoUrl,
-        roleSlug: defaultRole.slug,
-        roleNameBangla: defaultRole.nameBangla,
-        isOwner: isGoogleAuth ? false : roleSlug === "owner",
-        permissions: isGoogleAuth ? [] : defaultRole.permissions,
+        roleSlug,
+        roleNameBangla: isOwner ? "দোকানের মালিক" : defaultRole.nameBangla,
+        isOwner,
+        permissions,
         authMethod: isGoogleAuth ? "google" : "credentials",
       };
     }
-  } catch {
+  } catch (err) {
+    console.warn("Session token decode fallback error:", err);
     return null;
   }
 
@@ -161,8 +214,8 @@ export function hasPermission(session: IUserSession | null, permission: Permissi
 /**
  * Server guard: throws error if unauthorized
  */
-export async function requirePermission(permission: Permission): Promise<IUserSession> {
-  const session = await getSession();
+export async function requirePermission(permission: Permission, req?: NextRequest): Promise<IUserSession> {
+  const session = await getSession(req);
 
   if (!session) {
     throw new Error("অননুমোদিত অ্যাক্সেস। অনুগ্রহ করে প্রথমে লগইন করুন।");
