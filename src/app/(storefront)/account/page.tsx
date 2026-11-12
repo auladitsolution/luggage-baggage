@@ -19,6 +19,10 @@ import {
   LogIn,
   CheckCircle2,
   AlertCircle,
+  KeyRound,
+  Lock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { STORE_INFO } from "@/lib/config/storeInfo";
 import { useAuth } from "@/context/AuthContext";
@@ -29,6 +33,68 @@ function AccountContent() {
   const errorParam = searchParams.get("error");
   const { user, loading, logout } = useAuth();
   const [loggingOut, setLoggingOut] = useState(false);
+
+  // Change password states
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!oldPassword) {
+      setPasswordError("অনুগ্রহ করে আপনার বর্তমান (ওল্ড) পাসওয়ার্ডটি লিখুন।");
+      return;
+    }
+    if (!newPassword || newPassword.length < 6) {
+      setPasswordError("নতুন পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("নতুন পাসওয়ার্ড এবং নিশ্চিতকরণ পাসওয়ার্ড মিলছে না।");
+      return;
+    }
+    if (oldPassword === newPassword) {
+      setPasswordError("নতুন পাসওয়ার্ডটি বর্তমান পাসওয়ার্ড থেকে আলাদা হতে হবে।");
+      return;
+    }
+
+    try {
+      setPasswordLoading(true);
+      setPasswordError(null);
+      setPasswordSuccess(null);
+
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          oldPassword,
+          newPassword,
+          confirmPassword,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "পাসওয়ার্ড পরিবর্তন করা সম্ভব হয়নি।");
+      }
+
+      setPasswordSuccess(data.message || "পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে!");
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: any) {
+      setPasswordError(err.message || "পাসওয়ার্ড পরিবর্তন ব্যর্থ হয়েছে।");
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     if (!confirm("আপনি কি নিশ্চিতভাবে অ্যাকাউন্ট থেকে লগআউট করতে চান?")) return;
@@ -219,6 +285,145 @@ function AccountContent() {
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </Link>
+            </div>
+
+            {/* Password Management & Profile Security Card */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/90 space-y-6">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-teal-50 text-brand-teal flex items-center justify-center">
+                    <KeyRound className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-brand-navy">পাসওয়ার্ড পরিবর্তন করুন</h3>
+                    <p className="text-xs text-slate-500">আপনার বর্তমান (ওল্ড) পাসওয়ার্ড যাচাই করে নতুন পাসওয়ার্ড সেট করুন</p>
+                  </div>
+                </div>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">
+                  নিরাপত্তা সেটিংস
+                </span>
+              </div>
+
+              {user.authMethod === "google" ? (
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-start gap-3">
+                  <ShieldCheck className="w-5 h-5 text-brand-teal flex-shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <strong className="block text-slate-800 font-bold">গুগল সাইন-ইন অ্যাকাউন্ট</strong>
+                    <p className="leading-relaxed">
+                      আপনি গুগল অ্যাকাউন্ট দিয়ে লগইন করেছেন। আপনার অ্যাকাউন্টের নিরাপত্তা ও পাসওয়ার্ড গুগল অ্যাকাউন্ট সেটিংস থেকেই সরাসরি পরিচালিত হয়।
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleChangePassword} className="space-y-4 max-w-xl">
+                  {passwordError && (
+                    <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+                      <span>{passwordError}</span>
+                    </div>
+                  )}
+
+                  {passwordSuccess && (
+                    <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <span>{passwordSuccess}</span>
+                    </div>
+                  )}
+
+                  {/* Old / Current Password */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      বর্তমান (ওল্ড) পাসওয়ার্ড <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showOldPassword ? "text" : "password"}
+                        required
+                        value={oldPassword}
+                        onChange={(e) => setOldPassword(e.target.value)}
+                        placeholder="আপনার বর্তমান পাসওয়ার্ড লিখুন"
+                        className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 text-xs text-brand-navy placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal focus:border-transparent transition-all"
+                      />
+                      <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                      <button
+                        type="button"
+                        onClick={() => setShowOldPassword(!showOldPassword)}
+                        className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                      >
+                        {showOldPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* New Password */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        নতুন পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর) <span className="text-rose-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showNewPassword ? "text" : "password"}
+                          required
+                          minLength={6}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="নতুন শক্তিশালী পাসওয়ার্ড দিন"
+                          className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 text-xs text-brand-navy placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal focus:border-transparent transition-all"
+                        />
+                        <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                        >
+                          {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Confirm New Password */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        নতুন পাসওয়ার্ড নিশ্চিত করুন <span className="text-rose-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          required
+                          minLength={6}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="পুনরায় নতুন পাসওয়ার্ড লিখুন"
+                          className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 text-xs text-brand-navy placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal focus:border-transparent transition-all"
+                        />
+                        <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                        >
+                          {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <p className="text-[11px] text-slate-400">
+                      পাসওয়ার্ড পরিবর্তনের সাথে সাথে নতুন পাসওয়ার্ড সক্রিয় হয়ে যাবে।
+                    </p>
+                    <button
+                      type="submit"
+                      disabled={passwordLoading}
+                      className="px-5 py-2.5 rounded-xl bg-brand-navy hover:bg-brand-teal text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
+                    >
+                      <Lock className="w-3.5 h-3.5 text-brand-gold" />
+                      <span>{passwordLoading ? "সংরক্ষণ হচ্ছে..." : "নতুন পাসওয়ার্ড সংরক্ষণ করুন"}</span>
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
 
             {/* Staff / Administrative Quick Links (Displayed only if user has elevated privileges) */}

@@ -824,7 +824,7 @@ export default function AdminProductsPage() {
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
                           <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200">
-                            <Image unoptimized src={thumb} alt="" fill className="object-cover" />
+                            <Image unoptimized src={thumb} alt="" fill className="object-contain p-0.5" />
                           </div>
                           <div>
                             <span className="font-bold text-brand-navy block line-clamp-1">

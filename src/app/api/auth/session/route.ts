@@ -12,7 +12,7 @@ import { DEFAULT_ROLES } from "@/lib/constants/permissions";
 import { RoleSlug, ALL_PERMISSIONS } from "@/types/auth";
 import { getMockStore } from "@/lib/db/memoryStore";
 import { ensureOwnerConfigured } from "@/lib/auth/seedOwner";
-import { verifyPassword } from "@/lib/auth/password";
+import { verifyPassword, hashPassword } from "@/lib/auth/password";
 
 const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME || "lumina_session";
 
@@ -78,7 +78,36 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const isValidPassword = verifyPassword(password, user.passwordHash);
+      let isValidPassword = verifyPassword(password, user.passwordHash);
+
+      // Fallback verification: Check if user reset password via Firebase Email link
+      if (!isValidPassword && user.email && process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
+        try {
+          const fbRes = await fetch(
+            `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.NEXT_PUBLIC_FIREBASE_API_KEY}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: user.email,
+                password,
+                returnSecureToken: true,
+              }),
+            }
+          );
+          const fbData = await fbRes.json();
+          if (fbRes.ok && fbData.idToken) {
+            isValidPassword = true;
+            user.passwordHash = hashPassword(password);
+            if (!user.firebaseUid && fbData.localId) {
+              user.firebaseUid = fbData.localId;
+            }
+          }
+        } catch (fbErr) {
+          console.warn("Firebase password verification check skipped:", fbErr);
+        }
+      }
+
       if (!isValidPassword) {
         return NextResponse.json(
           { error: "ভুল ইমেইল/আইডি অথবা পাসওয়ার্ড।" },

@@ -425,7 +425,7 @@ export default function POSPage() {
                   >
                     <div>
                       <div className="relative h-24 w-full rounded-lg overflow-hidden bg-slate-50 mb-2 border border-slate-100">
-                        <Image unoptimized src={v.image} alt="" fill className="object-cover group-hover:scale-105 transition-transform" />
+                        <Image unoptimized src={v.image} alt="" fill className="object-contain p-1 group-hover:scale-105 transition-transform" />
                         <span className={`absolute top-1 right-1 px-1.5 py-0.5 rounded text-[9px] font-bold ${
                           v.stock <= 3 ? "bg-rose-600 text-white" : "bg-brand-navy/80 text-white"
                         }`}>

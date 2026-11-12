@@ -176,12 +176,12 @@ export default function ProductDetailPage({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
         {/* Left: Images Showcase */}
         <div className="lg:col-span-6 space-y-4">
-          <div className="relative h-80 sm:h-[450px] w-full rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shadow-sm">
-            <Image unoptimized src={mainImage} alt={product.nameBangla} fill className="object-cover" priority />
-            <div className="absolute top-4 left-4 px-3 py-1 rounded-lg bg-brand-navy/90 text-white text-xs font-semibold">
+          <div className="relative h-80 sm:h-[450px] w-full rounded-2xl overflow-hidden bg-gradient-to-b from-slate-50/80 via-white to-slate-100/70 border border-slate-200 shadow-sm flex items-center justify-center p-6">
+            <Image unoptimized src={mainImage} alt={product.nameBangla} fill className="object-contain p-4 transition-transform duration-500 drop-shadow-sm" priority />
+            <div className="absolute top-4 left-4 px-3 py-1 rounded-lg bg-brand-navy/90 text-white text-xs font-semibold z-10">
               {product.brandName}
             </div>
-            <div className="absolute top-4 right-4">
+            <div className="absolute top-4 right-4 z-10">
               {inStock ? (
                 <span className="px-3 py-1 rounded-lg bg-emerald-600 text-white text-xs font-bold shadow-sm">
                   স্টকে আছে ({toBengaliNumber(availableStock)} পিস)
@@ -207,7 +207,7 @@ export default function ProductDetailPage({
                       : "border-slate-200 opacity-70 hover:opacity-100"
                   }`}
                 >
-                  <Image unoptimized src={img} alt="" fill className="object-cover" />
+                  <Image unoptimized src={img} alt="" fill className="object-contain p-1.5" />
                 </button>
               ))}
             </div>

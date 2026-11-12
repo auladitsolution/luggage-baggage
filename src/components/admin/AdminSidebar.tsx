@@ -180,7 +180,11 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
 
         {/* User Profile & Logout */}
         <div className="p-2.5 rounded-xl bg-slate-900/60 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2.5 overflow-hidden">
+          <Link
+            href="/account"
+            className="flex items-center gap-2.5 overflow-hidden hover:opacity-85 transition-opacity flex-1 min-w-0 pr-2"
+            title="প্রোফাইল ও পাসওয়ার্ড পরিবর্তন"
+          >
             <div className="w-8 h-8 rounded-full bg-brand-teal/20 text-brand-teal font-bold flex items-center justify-center flex-shrink-0">
               {session?.displayName?.[0] || settings.owners?.[0] || "M"}
             </div>
@@ -189,14 +193,14 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
                 {session?.displayName || settings.owners || "Md. Sohel Sikder & Md. Alam"}
               </span>
               <span className="block text-[10px] text-emerald-400 truncate">
-                {session?.roleNameBangla || "দোকানের মালিক"}
+                {session?.roleNameBangla || "দোকানের মালিক"} • পাসওয়ার্ড পরিবর্তন
               </span>
             </div>
-          </div>
+          </Link>
 
           <button
             onClick={handleLogout}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors flex-shrink-0"
             title="লগআউট"
           >
             <LogOut className="w-4 h-4" />

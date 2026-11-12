@@ -27,6 +27,13 @@ const UserSchema = new Schema<IUserDocument>(
       type: String,
       trim: true,
     },
+    resetPasswordToken: {
+      type: String,
+      trim: true,
+    },
+    resetPasswordExpires: {
+      type: Date,
+    },
     phone: {
       type: String,
       trim: true,

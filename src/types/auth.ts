@@ -75,6 +75,8 @@ export interface IUser {
   phone?: string;
   displayName: string;
   passwordHash?: string;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
   photoUrl?: string;
   roleId: string | IRole;
   isActive: boolean;

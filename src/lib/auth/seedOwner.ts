@@ -46,7 +46,10 @@ export async function ensureOwnerConfigured(): Promise<void> {
     } else {
       owner.displayName = OWNER_CONFIG.name;
       owner.email = OWNER_CONFIG.email;
-      owner.passwordHash = passwordHash;
+      // Do NOT overwrite existing password when user has updated their password
+      if (!owner.passwordHash) {
+        owner.passwordHash = passwordHash;
+      }
       owner.roleId = ownerRole;
       owner.isOwner = true;
       owner.isActive = true;
@@ -81,7 +84,10 @@ export async function ensureOwnerConfigured(): Promise<void> {
     } else {
       owner.displayName = OWNER_CONFIG.name;
       owner.email = OWNER_CONFIG.email;
-      owner.passwordHash = passwordHash;
+      // CRITICAL SECURITY FIX: Do NOT overwrite an existing password when user changes password!
+      if (!owner.passwordHash) {
+        owner.passwordHash = passwordHash;
+      }
       owner.roleId = ownerRole._id as any;
       owner.isOwner = true;
       owner.isActive = true;

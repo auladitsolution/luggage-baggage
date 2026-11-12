@@ -628,19 +628,19 @@ function ShopCatalogContent() {
                     className="group flex flex-col rounded-2xl bg-white border border-slate-200/90 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 relative"
                   >
                     {/* Thumbnail */}
-                    <div className="relative h-64 w-full bg-gradient-to-br from-slate-100 to-slate-200/80 overflow-hidden flex items-center justify-center">
+                    <div className="relative h-64 sm:h-72 w-full bg-gradient-to-b from-slate-50/80 via-white to-slate-100/70 overflow-hidden flex items-center justify-center border-b border-slate-100">
                       <Image
                         unoptimized
                         src={imgUrl}
                         alt={product.nameBangla}
                         fill
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="object-contain p-3.5 group-hover:scale-105 transition-transform duration-500 ease-out drop-shadow-xs"
                       />
 
                       {/* Brand Badge */}
-                      <div className="absolute top-3 left-3 z-10">
-                        <span className="px-2.5 py-1 rounded-lg bg-brand-navy/90 backdrop-blur-sm text-white text-[11px] font-bold shadow-sm tracking-wide">
+                      <div className="absolute top-3 left-3 z-10 pointer-events-none">
+                        <span className="px-2.5 py-1 rounded-lg bg-brand-navy/90 backdrop-blur-xs text-white text-[11px] font-bold shadow-xs tracking-wide">
                           {product.brandName}
                         </span>
                       </div>

@@ -314,27 +314,27 @@ export default function StorefrontHomePage() {
                 className="group flex flex-col rounded-2xl bg-white border border-slate-200/90 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
               >
                 {/* Product Thumbnail with Tags */}
-                <div className="relative h-64 w-full bg-slate-100 overflow-hidden">
+                <div className="relative h-64 sm:h-72 w-full bg-gradient-to-b from-slate-50/80 via-white to-slate-100/70 overflow-hidden flex items-center justify-center border-b border-slate-100">
                   <Image
                     unoptimized
                     src={imageUrl}
                     alt={product.nameBangla}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="object-contain p-3.5 group-hover:scale-105 transition-transform duration-500 ease-out drop-shadow-xs"
                   />
-                  <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+                  <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10 pointer-events-none">
                     {product.isNewArrival && (
-                      <span className="px-2.5 py-1 rounded-md bg-brand-navy text-white text-[11px] font-semibold tracking-wide">
+                      <span className="px-2.5 py-1 rounded-md bg-brand-navy/90 backdrop-blur-xs text-white text-[11px] font-semibold tracking-wide shadow-xs">
                         নতুন কালেকশন
                       </span>
                     )}
-                    <span className="px-2.5 py-1 rounded-md bg-teal-600 text-white text-[11px] font-semibold">
+                    <span className="px-2.5 py-1 rounded-md bg-teal-600/90 backdrop-blur-xs text-white text-[11px] font-semibold shadow-xs">
                       {product.brandName || "লাগেজ"}
                     </span>
                   </div>
 
                   {firstVariant && (firstVariant.stock <= 5 || (firstVariant.availableStock !== undefined && firstVariant.availableStock <= 5)) && (
-                    <div className="absolute bottom-3 left-3 px-2 py-0.5 rounded bg-amber-500 text-white text-[10px] font-bold">
+                    <div className="absolute bottom-3 left-3 px-2 py-0.5 rounded bg-amber-500/95 text-white text-[10px] font-bold shadow-xs z-10">
                       সীমিত স্টক ({toBengaliNumber(firstVariant.availableStock ?? firstVariant.stock)} টি বাকি)
                     </div>
                   )}
