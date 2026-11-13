@@ -309,15 +309,15 @@ export default function AdminSalesInvoicesPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-100">
                 <tr>
-                  <th className="py-3.5 px-4">ইনভয়েস নং & সময়</th>
-                  <th className="py-3.5 px-4">কাস্টমার</th>
-                  <th className="py-3.5 px-4">আইটেম বিবরণ</th>
-                  <th className="py-3.5 px-4 text-right">মোট বিল</th>
-                  <th className="py-3.5 px-4 text-right">পরিশোধিত</th>
-                  <th className="py-3.5 px-4 text-right">বকেয়া</th>
-                  <th className="py-3.5 px-4">পেমেন্ট মাধ্যম</th>
-                  <th className="py-3.5 px-4">স্ট্যাটাস</th>
-                  <th className="py-3.5 px-4 text-center">রসিদ / অ্যাকশন</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">ইনভয়েস নং & সময়</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">কাস্টমার</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap min-w-[150px]">আইটেম বিবরণ</th>
+                  <th className="py-3.5 px-4 text-right whitespace-nowrap">মোট বিল</th>
+                  <th className="py-3.5 px-4 text-right whitespace-nowrap">পরিশোধিত</th>
+                  <th className="py-3.5 px-4 text-right whitespace-nowrap">বকেয়া</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">পেমেন্ট মাধ্যম</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">স্ট্যাটাস</th>
+                  <th className="py-3.5 px-4 text-center whitespace-nowrap">রসিদ / অ্যাকশন</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -335,7 +335,7 @@ export default function AdminSalesInvoicesPage() {
 
                   return (
                     <tr key={invoiceId} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3.5 px-4">
+                      <td className="py-3.5 px-4 whitespace-nowrap">
                         <span className="font-mono font-bold text-brand-navy block">
                           {inv.invoiceNumber}
                         </span>
@@ -343,7 +343,7 @@ export default function AdminSalesInvoicesPage() {
                           {formattedDate}, {formattedTime}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-3.5 px-4 whitespace-nowrap">
                         <span className="font-semibold text-slate-800 block">
                           {inv.customerName || "সাধারণ ক্রেতা"}
                         </span>
@@ -359,21 +359,21 @@ export default function AdminSalesInvoicesPage() {
                             ? inv.items.map((i) => `${i.productNameBangla || i.productName} (${toBengaliNumber(i.quantity)}টি)`).join(", ")
                             : "লাগেজ ও পণ্য")}
                       </td>
-                      <td className="py-3.5 px-4 text-right font-bold text-brand-navy">
+                      <td className="py-3.5 px-4 text-right whitespace-nowrap font-bold text-brand-navy">
                         {formatBDT(inv.totalPoisha)}
                       </td>
-                      <td className="py-3.5 px-4 text-right font-medium text-emerald-600">
+                      <td className="py-3.5 px-4 text-right whitespace-nowrap font-medium text-emerald-600">
                         {formatBDT(inv.paidPoisha)}
                       </td>
-                      <td className="py-3.5 px-4 text-right font-medium text-amber-600">
+                      <td className="py-3.5 px-4 text-right whitespace-nowrap font-medium text-amber-600">
                         {inv.duePoisha > 0 ? formatBDT(inv.duePoisha) : "৳ ০"}
                       </td>
-                      <td className="py-3.5 px-4 text-slate-600">
+                      <td className="py-3.5 px-4 whitespace-nowrap text-slate-600">
                         <span className="px-2 py-0.5 rounded bg-slate-100 text-[10px] font-medium">
                           {formatPaymentMethod(inv)}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-3.5 px-4 whitespace-nowrap">
                         {inv.paymentStatus === "paid" ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700">
                             <CheckCircle2 className="w-3 h-3" />

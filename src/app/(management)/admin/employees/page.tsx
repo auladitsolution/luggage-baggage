@@ -221,14 +221,14 @@ export default function EmployeesPage() {
           <table className="w-full text-left text-sm text-slate-700">
             <thead className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
               <tr>
-                <th className="py-3.5 px-4">কর্মচারী</th>
-                <th className="py-3.5 px-4">পদবী</th>
-                <th className="py-3.5 px-4">মোবাইল</th>
-                <th className="py-3.5 px-4">যোগদানের তারিখ</th>
-                <th className="py-3.5 px-4">মূল বেতন</th>
-                <th className="py-3.5 px-4">ভাতা</th>
-                <th className="py-3.5 px-4">মোট বেতন</th>
-                <th className="py-3.5 px-4 text-center">স্ট্যাটাস</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">কর্মচারী</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">পদবী</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">মোবাইল</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">যোগদানের তারিখ</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">মূল বেতন</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">ভাতা</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">মোট বেতন</th>
+                <th className="py-3.5 px-4 text-center whitespace-nowrap">স্ট্যাটাস</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">

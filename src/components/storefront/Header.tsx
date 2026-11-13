@@ -65,38 +65,39 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 w-full bg-white shadow-sm border-b border-slate-100">
       {/* Top utility notification bar */}
-      <div className="bg-brand-navy text-slate-200 text-xs py-1.5 px-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5">
-              <Truck className="w-3.5 h-3.5 text-brand-gold" />
-              <span>সারাদেশে দ্রুত হোম ডেলিভারি</span>
+      <div className="bg-brand-navy text-slate-200 text-xs py-1.5 px-3 sm:px-4 overflow-hidden">
+        <div className="max-w-7xl mx-auto flex justify-between items-center gap-2">
+          <div className="flex items-center gap-3 truncate">
+            <span className="flex items-center gap-1.5 shrink-0">
+              <Truck className="w-3.5 h-3.5 text-brand-gold shrink-0" />
+              <span className="text-[11px] sm:text-xs">সারাদেশে দ্রুত হোম ডেলিভারি</span>
             </span>
-            <span className="hidden md:flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-brand-teal" />
-              <span>১০০% আসল ব্র্যান্ড ও ইন্টারন্যাশনাল ওয়ারেন্টি</span>
+            <span className="hidden lg:flex items-center gap-1.5 shrink-0">
+              <ShieldCheck className="w-3.5 h-3.5 text-brand-teal shrink-0" />
+              <span className="text-[11px] sm:text-xs">১০০% আসল ব্র্যান্ড ও ইন্টারন্যাশনাল ওয়ারেন্টি</span>
             </span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0 text-[11px] sm:text-xs">
             <a 
               href={`tel:${settings.mobile}`}
               className="flex items-center gap-1 text-slate-300 hover:text-brand-gold transition-colors"
             >
-              <PhoneCall className="w-3 h-3 text-brand-gold" />
-              <span>হটলাইন: {settings.phoneFormatted}</span>
+              <PhoneCall className="w-3 h-3 text-brand-gold shrink-0" />
+              <span className="hidden xs:inline">হটলাইন: </span>
+              <span>{settings.phoneFormatted}</span>
             </a>
-            <span className="text-slate-500">|</span>
+            <span className="text-slate-600 hidden sm:inline">|</span>
             <Link 
               href="/pos" 
-              className="flex items-center gap-1 text-brand-gold hover:text-white font-medium transition-colors"
+              className="hidden sm:flex items-center gap-1 text-brand-gold hover:text-white font-medium transition-colors"
             >
               <Store className="w-3.5 h-3.5" />
               <span>পিওএস কাউন্টার</span>
             </Link>
-            <span className="text-slate-500">|</span>
+            <span className="text-slate-600 hidden sm:inline">|</span>
             <Link 
               href="/admin" 
-              className="flex items-center gap-1 text-slate-300 hover:text-white transition-colors"
+              className="hidden sm:flex items-center gap-1 text-slate-300 hover:text-white transition-colors"
             >
               <LayoutDashboard className="w-3.5 h-3.5" />
               <span>ম্যানেজমেন্ট</span>
@@ -106,11 +107,11 @@ export default function Header() {
       </div>
 
       {/* Main navigation header */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
-        <div className="flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5">
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
           {/* Brand Logo */}
-          <Link href="/" className="flex items-center gap-2.5 flex-shrink-0 group">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden bg-white shadow-sm border border-slate-200/80 flex items-center justify-center p-0.5 group-hover:scale-105 transition-transform">
+          <Link href="/" className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0 group min-w-0">
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl overflow-hidden bg-white shadow-sm border border-slate-200/80 flex items-center justify-center p-0.5 group-hover:scale-105 transition-transform shrink-0">
               <Image
                 src="/logo.png"
                 alt={settings.name}
@@ -120,11 +121,11 @@ export default function Header() {
                 className="w-full h-full object-contain"
               />
             </div>
-            <div>
-              <span className="text-xl sm:text-2xl font-bold tracking-tight text-brand-navy group-hover:text-brand-teal transition-colors">
+            <div className="min-w-0">
+              <span className="text-base xs:text-xl sm:text-2xl font-bold tracking-tight text-brand-navy group-hover:text-brand-teal transition-colors block truncate max-w-[160px] xs:max-w-none">
                 {settings.nameBangla}
               </span>
-              <span className="hidden sm:block text-[11px] text-brand-muted -mt-1 font-normal tracking-wide">
+              <span className="hidden sm:block text-[11px] text-brand-muted -mt-1 font-normal tracking-wide truncate">
                 {settings.name} • {settings.shortAddress}
               </span>
             </div>

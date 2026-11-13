@@ -268,14 +268,14 @@ export default function AdminInventoryPage() {
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-100">
                     <tr>
-                      <th className="py-3 px-4">পণ্য ও ভ্যারিয়েন্ট</th>
-                      <th className="py-3 px-4">এসকেইউ ও বারকোড</th>
-                      <th className="py-3 px-4">শাখা বা গোডাউন</th>
-                      <th className="py-3 px-4 text-center">ফিজিক্যাল স্টক</th>
-                      <th className="py-3 px-4 text-center">অনলাইন রিজার্ভ</th>
-                      <th className="py-3 px-4 text-center">বিক্রয়যোগ্য স্টক</th>
-                      <th className="py-3 px-4 text-center">স্ট্যাটাস</th>
-                      <th className="py-3 px-4 text-center">অ্যাকশন</th>
+                      <th className="py-3 px-4 whitespace-nowrap">পণ্য ও ভ্যারিয়েন্ট</th>
+                      <th className="py-3 px-4 whitespace-nowrap">এসকেইউ ও বারকোড</th>
+                      <th className="py-3 px-4 whitespace-nowrap">শাখা বা গোডাউন</th>
+                      <th className="py-3 px-4 text-center whitespace-nowrap">ফিজিক্যাল স্টক</th>
+                      <th className="py-3 px-4 text-center whitespace-nowrap">অনলাইন রিজার্ভ</th>
+                      <th className="py-3 px-4 text-center whitespace-nowrap">বিক্রয়যোগ্য স্টক</th>
+                      <th className="py-3 px-4 text-center whitespace-nowrap">স্ট্যাটাস</th>
+                      <th className="py-3 px-4 text-center whitespace-nowrap">অ্যাকশন</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -371,12 +371,12 @@ export default function AdminInventoryPage() {
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-100">
                   <tr>
-                    <th className="py-2.5 px-4">তারিখ ও সময়</th>
-                    <th className="py-2.5 px-4">ভ্যারিয়েন্ট</th>
-                    <th className="py-2.5 px-4">মুভমেন্টের ধরন</th>
-                    <th className="py-2.5 px-4 text-center">পরিবর্তন (Qty)</th>
-                    <th className="py-2.5 px-4 text-center">ব্যালেন্স (পূর্ব ➔ পর)</th>
-                    <th className="py-2.5 px-4">কারণ ও বিবরণ</th>
+                    <th className="py-2.5 px-4 whitespace-nowrap">তারিখ ও সময়</th>
+                    <th className="py-2.5 px-4 whitespace-nowrap">ভ্যারিয়েন্ট</th>
+                    <th className="py-2.5 px-4 whitespace-nowrap">মুভমেন্টের ধরন</th>
+                    <th className="py-2.5 px-4 text-center whitespace-nowrap">পরিবর্তন (Qty)</th>
+                    <th className="py-2.5 px-4 text-center whitespace-nowrap">ব্যালেন্স (পূর্ব ➔ পর)</th>
+                    <th className="py-2.5 px-4 whitespace-nowrap">কারণ ও বিবরণ</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">

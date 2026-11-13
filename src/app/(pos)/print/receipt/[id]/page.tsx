@@ -88,7 +88,7 @@ export default function ReceiptPrintPage({
         </Link>
 
         {/* Paper Format Switcher */}
-        <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs">
+        <div className="flex flex-wrap justify-center items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs">
           <button
             onClick={() => setFormat("80mm")}
             className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${

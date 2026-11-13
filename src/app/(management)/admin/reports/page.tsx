@@ -190,7 +190,7 @@ export default function ReportsPage() {
           </Button>
         </div>
 
-        <div className="flex items-center gap-2 w-full md:w-auto">
+        <div className="flex flex-wrap xs:flex-nowrap items-center gap-2 w-full md:w-auto">
           <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
           <input
             type="date"
@@ -199,9 +199,9 @@ export default function ReportsPage() {
               setDatePreset("custom");
               setStartDate(e.target.value);
             }}
-            className="px-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-teal"
+            className="w-full xs:w-auto min-w-0 px-2 sm:px-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-teal"
           />
-          <span className="text-slate-400 text-xs">থেকে</span>
+          <span className="text-slate-400 text-xs shrink-0">থেকে</span>
           <input
             type="date"
             value={endDate}
@@ -209,7 +209,7 @@ export default function ReportsPage() {
               setDatePreset("custom");
               setEndDate(e.target.value);
             }}
-            className="px-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-teal"
+            className="w-full xs:w-auto min-w-0 px-2 sm:px-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-teal"
           />
         </div>
       </div>

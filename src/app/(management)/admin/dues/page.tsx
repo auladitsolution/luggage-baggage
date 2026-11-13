@@ -182,12 +182,12 @@ export default function AdminDuesPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-100">
                 <tr>
-                  <th className="py-3 px-4">কাস্টমার নাম ও মোবাইল</th>
-                  <th className="py-3 px-4">ঠিকানা</th>
-                  <th className="py-3 px-4">ক্রেডিট লিমিট</th>
-                  <th className="py-3 px-4">বর্তমান বকেয়া</th>
-                  <th className="py-3 px-4">সর্বশেষ চালান</th>
-                  <th className="py-3 px-4 text-center">অ্যাকশন</th>
+                  <th className="py-3 px-4 whitespace-nowrap">কাস্টমার নাম ও মোবাইল</th>
+                  <th className="py-3 px-4 whitespace-nowrap">ঠিকানা</th>
+                  <th className="py-3 px-4 whitespace-nowrap">ক্রেডিট লিমিট</th>
+                  <th className="py-3 px-4 whitespace-nowrap">বর্তমান বকেয়া</th>
+                  <th className="py-3 px-4 whitespace-nowrap">সর্বশেষ চালান</th>
+                  <th className="py-3 px-4 text-center whitespace-nowrap">অ্যাকশন</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">

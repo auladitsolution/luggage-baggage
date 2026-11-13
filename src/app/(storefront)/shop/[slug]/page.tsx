@@ -289,7 +289,7 @@ export default function ProductDetailPage({
 
           {/* Quantity and Action Buttons */}
           <div className="space-y-4 pt-2">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
               {/* Quantity Counter */}
               <div className="flex items-center justify-between border border-slate-300 rounded-xl bg-white overflow-hidden shadow-sm h-12 flex-shrink-0">
                 <button
@@ -312,27 +312,30 @@ export default function ProductDetailPage({
                 </button>
               </div>
 
-              {/* Add to Cart Button */}
-              <button
-                type="button"
-                onClick={handleAddToCartClick}
-                disabled={!inStock}
-                className="flex-1 h-12 px-5 rounded-xl bg-brand-navy hover:bg-brand-navyLight text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-brand-navy/20 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ShoppingBag className="w-5 h-5 text-brand-gold" />
-                <span>{inStock ? "কার্টে যুক্ত করুন" : "স্টক শেষ"}</span>
-              </button>
+              {/* Action Buttons Container */}
+              <div className="flex flex-col xs:flex-row items-center gap-2.5 flex-1 w-full">
+                {/* Add to Cart Button */}
+                <button
+                  type="button"
+                  onClick={handleAddToCartClick}
+                  disabled={!inStock}
+                  className="w-full xs:flex-1 h-12 px-4 sm:px-5 rounded-xl bg-brand-navy hover:bg-brand-navyLight text-white font-bold text-xs sm:text-sm md:text-base flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-brand-navy/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-brand-gold shrink-0" />
+                  <span className="truncate">{inStock ? "কার্টে যুক্ত করুন" : "স্টক শেষ"}</span>
+                </button>
 
-              {/* Direct Order Button */}
-              <button
-                type="button"
-                onClick={handleDirectOrderClick}
-                disabled={!inStock}
-                className="flex-1 h-12 px-5 rounded-xl bg-gradient-to-r from-amber-500 via-brand-gold to-amber-600 hover:from-amber-600 hover:to-amber-700 text-brand-navy font-black text-sm sm:text-base flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-brand-gold/30 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Zap className="w-5 h-5 text-brand-navy fill-brand-navy" />
-                <span>সরাসরি অর্ডার করুন</span>
-              </button>
+                {/* Direct Order Button */}
+                <button
+                  type="button"
+                  onClick={handleDirectOrderClick}
+                  disabled={!inStock}
+                  className="w-full xs:flex-1 h-12 px-4 sm:px-5 rounded-xl bg-gradient-to-r from-amber-500 via-brand-gold to-amber-600 hover:from-amber-600 hover:to-amber-700 text-brand-navy font-black text-xs sm:text-sm md:text-base flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-brand-gold/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-brand-navy fill-brand-navy shrink-0" />
+                  <span className="truncate">সরাসরি অর্ডার করুন</span>
+                </button>
+              </div>
             </div>
 
             {addedSuccess && (
@@ -379,7 +382,7 @@ export default function ProductDetailPage({
         </p>
 
         {product.specifications && Object.keys(product.specifications).length > 0 && (
-          <div className="max-w-2xl bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+          <div className="max-w-2xl bg-white rounded-xl border border-slate-200 overflow-x-auto shadow-sm">
             <table className="w-full text-xs sm:text-sm">
               <tbody className="divide-y divide-slate-100">
                 {Object.entries(product.specifications).map(([key, val]: any, i) => (

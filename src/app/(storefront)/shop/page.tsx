@@ -371,7 +371,7 @@ function ShopCatalogContent() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8">
       {/* Header & Breadcrumb */}
       <div className="border-b border-slate-200 pb-5 mb-6">
         <div className="text-xs text-brand-muted mb-1.5">
@@ -598,7 +598,7 @@ function ShopCatalogContent() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {products.map((product) => {
                 // Ensure proper high-res image or graceful luggage illustration fallback
                 const firstImg =

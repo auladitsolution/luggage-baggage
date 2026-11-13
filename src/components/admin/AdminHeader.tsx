@@ -33,20 +33,20 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
           <Menu className="w-5 h-5" />
         </button>
 
-        <div className="lg:hidden flex items-center gap-2">
-          <img src="/logo.png" alt={settings.nameBangla} className="w-7 h-7 object-contain rounded-lg border border-slate-200 bg-white" />
-          <span className="font-bold text-xs text-brand-navy notranslate" translate="no">{settings.nameBangla}</span>
+        <div className="lg:hidden flex items-center gap-2 min-w-0">
+          <img src="/logo.png" alt={settings.nameBangla} className="w-7 h-7 object-contain rounded-lg border border-slate-200 bg-white shrink-0" />
+          <span className="font-bold text-xs text-brand-navy notranslate truncate max-w-[120px] xs:max-w-none" translate="no">{settings.nameBangla}</span>
         </div>
 
         {/* Store Active Indicator */}
         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-teal-50 border border-teal-200 text-xs text-brand-teal font-medium notranslate" translate="no">
           <span className="w-2 h-2 rounded-full bg-brand-teal animate-pulse" />
-          <span>দোকান শাখা: <strong>{settings.nameBangla} ({settings.shortAddress})</strong></span>
+          <span className="truncate max-w-xs md:max-w-none">দোকান শাখা: <strong>{settings.nameBangla} ({settings.shortAddress})</strong></span>
         </div>
       </div>
 
       {/* Right Action Controls */}
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         {/* Shift indicator */}
         <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-xs text-slate-700">
           <Clock className="w-3.5 h-3.5 text-slate-500" />
@@ -56,10 +56,11 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
         {/* Quick Launch POS Button */}
         <Link
           href="/pos"
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-gold hover:bg-brand-goldLight text-brand-navy font-bold text-xs shadow-sm transition-colors"
+          className="inline-flex items-center gap-1.5 px-2.5 xs:px-3.5 py-2 rounded-xl bg-brand-gold hover:bg-brand-goldLight text-brand-navy font-bold text-xs shadow-sm transition-colors"
         >
-          <Store className="w-4 h-4" />
-          <span>পিওএস কাউন্টার</span>
+          <Store className="w-4 h-4 shrink-0" />
+          <span className="hidden xs:inline">পিওএস কাউন্টার</span>
+          <span className="xs:hidden">পিওএস</span>
         </Link>
 
         {/* Quick Notification */}

@@ -344,12 +344,12 @@ export default function AdminPurchasesPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600">
-                <th className="py-3.5 px-4">চালান ও মেমো</th>
-                <th className="py-3.5 px-4">সরবরাহকারী</th>
-                <th className="py-3.5 px-4 text-center">আইটেম ও পরিমাণ</th>
-                <th className="py-3.5 px-4 text-right">মোট বিল</th>
-                <th className="py-3.5 px-4 text-right">পরিশোধ ও বাকি</th>
-                <th className="py-3.5 px-4 text-center">স্ট্যাটাস</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">চালান ও মেমো</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">সরবরাহকারী</th>
+                <th className="py-3.5 px-4 text-center whitespace-nowrap">আইটেম ও পরিমাণ</th>
+                <th className="py-3.5 px-4 text-right whitespace-nowrap">মোট বিল</th>
+                <th className="py-3.5 px-4 text-right whitespace-nowrap">পরিশোধ ও বাকি</th>
+                <th className="py-3.5 px-4 text-center whitespace-nowrap">স্ট্যাটাস</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm">

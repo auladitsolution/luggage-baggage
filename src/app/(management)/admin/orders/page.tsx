@@ -240,13 +240,13 @@ export default function AdminOrdersPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600">
-                <th className="py-3.5 px-4">অর্ডার কোড ও তারিখ</th>
-                <th className="py-3.5 px-4">গ্রাহক পরিচিতি</th>
-                <th className="py-3.5 px-4">আইটেম ও এলাকা</th>
-                <th className="py-3.5 px-4 text-right">মোট প্রদেয়</th>
-                <th className="py-3.5 px-4 text-center">পেমেন্ট ভেরিফিকেশন</th>
-                <th className="py-3.5 px-4 text-center">ডেলিভারি স্ট্যাটাস</th>
-                <th className="py-3.5 px-4 text-center">অ্যাকশন</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">অর্ডার কোড ও তারিখ</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">গ্রাহক পরিচিতি</th>
+                <th className="py-3.5 px-4 whitespace-nowrap min-w-[150px]">আইটেম ও এলাকা</th>
+                <th className="py-3.5 px-4 text-right whitespace-nowrap">মোট প্রদেয়</th>
+                <th className="py-3.5 px-4 text-center whitespace-nowrap">পেমেন্ট ভেরিফিকেশন</th>
+                <th className="py-3.5 px-4 text-center whitespace-nowrap">ডেলিভারি স্ট্যাটাস</th>
+                <th className="py-3.5 px-4 text-center whitespace-nowrap">অ্যাকশন</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm">

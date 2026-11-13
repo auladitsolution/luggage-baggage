@@ -1,13 +1,27 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Grid, ShoppingBag, Store, User } from "lucide-react";
 import { cn, toBengaliNumber } from "@/lib/utils";
+import { getCartItems } from "@/lib/cart";
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
-  const cartItemCount = 2;
+  const [cartItemCount, setCartItemCount] = useState(0);
+
+  useEffect(() => {
+    const updateCount = () => {
+      const items = getCartItems();
+      const count = items.reduce((sum, i) => sum + i.quantity, 0);
+      setCartItemCount(count);
+    };
+
+    updateCount();
+    window.addEventListener("cart_updated", updateCount);
+    return () => window.removeEventListener("cart_updated", updateCount);
+  }, []);
 
   const navItems = [
     { label: "হোম", href: "/", icon: Home },
@@ -19,7 +33,7 @@ export default function MobileBottomNav() {
       icon: ShoppingBag, 
       badge: cartItemCount > 0 ? toBengaliNumber(cartItemCount) : null 
     },
-    { label: "অ্যাকাউন্ট", href: "/admin", icon: User },
+    { label: "অ্যাকাউন্ট", href: "/account", icon: User },
   ];
 
   return (

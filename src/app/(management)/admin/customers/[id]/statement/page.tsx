@@ -134,17 +134,17 @@ export default function CustomerStatementPage({
           </div>
 
           {/* Ledger History Table */}
-          <div className="my-4">
+          <div className="my-4 overflow-x-auto">
             <span className="font-bold text-slate-700 block mb-2">লেজার লেনদেন ইতিহাস (Ledger Transactions):</span>
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-y border-slate-200 font-bold text-slate-700">
-                  <th className="py-2 px-3">তারিখ</th>
-                  <th className="py-2 px-3">বিবরণ / লেনদেনের ধরন</th>
-                  <th className="py-2 px-3">রেফারেন্স নং</th>
-                  <th className="py-2 px-3 text-right">ডেবিট (+)</th>
-                  <th className="py-2 px-3 text-right">ক্রেডিট (-)</th>
-                  <th className="py-2 px-3 text-right">ব্যালেন্স</th>
+                  <th className="py-2 px-3 whitespace-nowrap">তারিখ</th>
+                  <th className="py-2 px-3 whitespace-nowrap">বিবরণ / লেনদেনের ধরন</th>
+                  <th className="py-2 px-3 whitespace-nowrap">রেফারেন্স নং</th>
+                  <th className="py-2 px-3 text-right whitespace-nowrap">ডেবিট (+)</th>
+                  <th className="py-2 px-3 text-right whitespace-nowrap">ক্রেডিট (-)</th>
+                  <th className="py-2 px-3 text-right whitespace-nowrap">ব্যালেন্স</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-mono text-[11px]">

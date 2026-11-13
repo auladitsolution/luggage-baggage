@@ -54,6 +54,7 @@ export default function POSPage() {
   // Cart
   const [cart, setCart] = useState<POSCartItem[]>([]);
   const [orderDiscountBDT, setOrderDiscountBDT] = useState<string>("0");
+  const [mobileTab, setMobileTab] = useState<"catalog" | "cart">("catalog");
 
   // Customer
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("walk-in");
@@ -324,6 +325,7 @@ export default function POSPage() {
     setPaymentMode("cash");
     setCompletedInvoice(null);
     setErrorMessage("");
+    setMobileTab("catalog");
     barcodeInputRef.current?.focus();
   };
 
@@ -343,30 +345,32 @@ export default function POSPage() {
   return (
     <div className="flex flex-col h-screen bg-slate-100 overflow-hidden text-xs">
       {/* Top Header */}
-      <header className="h-14 bg-brand-navy text-white px-4 flex items-center justify-between shadow-md flex-shrink-0">
-        <div className="flex items-center gap-3">
+      <header className="h-14 bg-brand-navy text-white px-3 sm:px-4 flex items-center justify-between shadow-md flex-shrink-0 gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <Link
             href="/admin"
-            className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center gap-1 font-semibold text-[11px]"
+            className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center gap-1 font-semibold text-[11px] shrink-0"
+            title="ড্যাশবোর্ডে ফিরে যান"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">ড্যাশবোর্ড</span>
           </Link>
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg overflow-hidden bg-white shadow-sm flex items-center justify-center p-0.5">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <div className="w-7 h-7 rounded-lg overflow-hidden bg-white shadow-sm flex items-center justify-center p-0.5 shrink-0">
               <img
                 src="/logo.png"
                 alt={STORE_INFO.name}
                 className="w-full h-full object-contain"
               />
             </div>
-            <h1 className="font-bold text-sm sm:text-base tracking-tight text-white">
-              {STORE_INFO.name} ({STORE_INFO.nameBangla}) • পিওএস কাউন্টার
+            <h1 className="font-bold text-xs xs:text-sm sm:text-base tracking-tight text-white truncate max-w-[130px] xs:max-w-[220px] sm:max-w-none">
+              <span className="hidden md:inline">{STORE_INFO.name} ({STORE_INFO.nameBangla}) • </span>
+              <span>পিওএস কাউন্টার</span>
             </h1>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {/* Hardware Barcode Scanner Input */}
           <form onSubmit={handleBarcodeSubmit} className="relative">
             <input
@@ -374,26 +378,58 @@ export default function POSPage() {
               type="text"
               value={barcodeInput}
               onChange={(e) => setBarcodeInput(e.target.value)}
-              placeholder="বারকোড স্ক্যান করুন (Scan)..."
-              className="w-48 sm:w-64 pl-8 pr-3 py-1.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-slate-300 text-xs focus:bg-white focus:text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold transition-all"
+              placeholder="বারকোড স্ক্যান..."
+              className="w-32 xs:w-44 sm:w-64 pl-7 sm:pl-8 pr-2.5 py-1.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-slate-300 text-[11px] sm:text-xs focus:bg-white focus:text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold transition-all"
             />
-            <Barcode className="w-4 h-4 text-brand-gold absolute left-2.5 top-2" />
+            <Barcode className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-brand-gold absolute left-2 sm:left-2.5 top-2" />
           </form>
 
           <button
             onClick={loadPOSData}
             title="পণ্য ও স্টক রিফ্রেশ"
-            className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white"
+            className="p-1.5 sm:p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white shrink-0"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </button>
         </div>
       </header>
 
+      {/* Mobile Tab Switcher (< lg) */}
+      <div className="lg:hidden flex items-center bg-white border-b border-slate-200 px-3 py-2 gap-2 flex-shrink-0">
+        <button
+          onClick={() => setMobileTab("catalog")}
+          className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
+            mobileTab === "catalog"
+              ? "bg-brand-navy text-white shadow-xs"
+              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+          }`}
+        >
+          <Store className="w-4 h-4" />
+          <span>পণ্য ক্যাটালগ ({toBengaliNumber(filteredVariants.length)})</span>
+        </button>
+
+        <button
+          onClick={() => setMobileTab("cart")}
+          className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all relative ${
+            mobileTab === "cart"
+              ? "bg-brand-teal text-white shadow-xs"
+              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+          }`}
+        >
+          <Receipt className="w-4 h-4" />
+          <span>কার্ট ও চেকআউট</span>
+          {cart.length > 0 && (
+            <span className="px-1.5 py-0.5 rounded-full bg-brand-gold text-brand-navy font-black text-[10px]">
+              {toBengaliNumber(cart.reduce((sum, i) => sum + i.quantity, 0))}
+            </span>
+          )}
+        </button>
+      </div>
+
       {/* Main POS Interface Grid */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
         {/* Left Column: Product Catalog & Search (60%) */}
-        <div className="flex-1 flex flex-col p-3 overflow-hidden border-r border-slate-200">
+        <div className={`flex-1 flex flex-col p-2.5 sm:p-3 overflow-hidden border-r border-slate-200 ${mobileTab === 'catalog' ? 'flex' : 'hidden lg:flex'}`}>
           {/* Search Box */}
           <div className="relative mb-3 flex-shrink-0">
             <input
@@ -456,10 +492,45 @@ export default function POSPage() {
               </div>
             )}
           </div>
+
+          {/* Mobile Sticky Cart Summary Bar when viewing catalog */}
+          {cart.length > 0 && (
+            <div className="lg:hidden mt-2 p-2.5 rounded-xl bg-brand-navy text-white flex items-center justify-between shadow-lg flex-shrink-0 animate-in fade-in">
+              <div>
+                <div className="text-[11px] text-slate-300">
+                  কার্ট: <strong>{toBengaliNumber(cart.reduce((sum, i) => sum + i.quantity, 0))}</strong> টি আইটেম
+                </div>
+                <div className="font-extrabold text-brand-gold text-xs">
+                  সর্বমোট: {formatBDT(grandTotalPoisha)}
+                </div>
+              </div>
+              <button
+                onClick={() => setMobileTab("cart")}
+                className="px-3.5 py-1.5 rounded-lg bg-brand-teal hover:bg-brand-tealLight text-white font-bold text-xs shadow flex items-center gap-1.5 transition-colors"
+              >
+                <span>চেকআউট করুন</span>
+                <Receipt className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right Column: Cart, Customer & Checkout Station (40%) */}
-        <div className="w-full lg:w-[420px] xl:w-[460px] bg-white flex flex-col shadow-lg border-l border-slate-200 flex-shrink-0">
+        <div className={`w-full lg:w-[420px] xl:w-[460px] bg-white flex flex-col shadow-lg border-l border-slate-200 flex-shrink-0 ${mobileTab === 'cart' ? 'flex flex-1' : 'hidden lg:flex'}`}>
+          {/* Mobile Back Button to Catalog */}
+          <div className="lg:hidden p-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+            <button
+              onClick={() => setMobileTab("catalog")}
+              className="inline-flex items-center gap-1.5 text-xs text-brand-navy font-bold hover:text-brand-teal"
+            >
+              <ArrowLeft className="w-4 h-4 text-brand-teal" />
+              <span>পণ্য তালিকায় ফিরে যান</span>
+            </button>
+            <span className="text-[11px] font-semibold text-slate-600">
+              মোট: <strong>{formatBDT(grandTotalPoisha)}</strong>
+            </span>
+          </div>
+
           {/* Customer Selection Box */}
           <div className="p-3 border-b border-slate-200 bg-slate-50/70 space-y-2">
             <div className="flex items-center justify-between">
@@ -737,8 +808,8 @@ export default function POSPage() {
 
       {/* Sale Success & Printing Dialog */}
       {completedInvoice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center space-y-4 border border-slate-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-4 sm:p-6 text-center space-y-4 border border-slate-200 max-h-[90vh] overflow-y-auto">
             <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-7 h-7" />
             </div>

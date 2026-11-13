@@ -63,7 +63,7 @@ export default function BarcodePrintPage({
   return (
     <div className="space-y-6">
       {/* Screen Control Bar (Hidden during print) */}
-      <div className="flex items-center justify-between border-b border-slate-200 pb-4 print:hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4 print:hidden">
         <div className="flex items-center gap-3">
           <Link
             href="/admin/products"

@@ -252,12 +252,12 @@ export default function AdminCustomersPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600">
-                <th className="py-3.5 px-4">কাস্টমার পরিচিতি</th>
-                <th className="py-3.5 px-4">যোগাযোগ ও ঠিকানা</th>
-                <th className="py-3.5 px-4 text-right">ক্রেডিট লিমিট</th>
-                <th className="py-3.5 px-4 text-right">বর্তমান বাকি</th>
-                <th className="py-3.5 px-4 text-center">স্ট্যাটাস</th>
-                <th className="py-3.5 px-4 text-center">অ্যাকশন</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">কাস্টমার পরিচিতি</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">যোগাযোগ ও ঠিকানা</th>
+                <th className="py-3.5 px-4 text-right whitespace-nowrap">ক্রেডিট লিমিট</th>
+                <th className="py-3.5 px-4 text-right whitespace-nowrap">বর্তমান বাকি</th>
+                <th className="py-3.5 px-4 text-center whitespace-nowrap">স্ট্যাটাস</th>
+                <th className="py-3.5 px-4 text-center whitespace-nowrap">অ্যাকশন</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm">

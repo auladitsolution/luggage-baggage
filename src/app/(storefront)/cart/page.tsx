@@ -98,33 +98,35 @@ export default function CartPage() {
         <div className="lg:col-span-8 space-y-4">
           <div className="rounded-2xl bg-white border border-slate-200 shadow-sm divide-y divide-slate-100 overflow-hidden">
             {items.map((item) => (
-              <div key={item.variantId} className="p-4 sm:p-5 flex gap-4 items-center">
-                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200">
-                  <Image
-                    unoptimized
-                    src={
-                      item.image ||
-                      "https://images.unsplash.com/photo-1565026057447-bc90a3dceb87?auto=format&fit=crop&w=600&q=80"
-                    }
-                    alt={item.productName}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
+              <div key={item.variantId} className="p-3.5 sm:p-5 flex flex-col xs:flex-row gap-3 sm:gap-4 xs:items-center justify-between">
+                <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                  <div className="relative w-16 h-16 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200">
+                    <Image
+                      unoptimized
+                      src={
+                        item.image ||
+                        "https://images.unsplash.com/photo-1565026057447-bc90a3dceb87?auto=format&fit=crop&w=600&q=80"
+                      }
+                      alt={item.productName}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
 
-                <div className="flex-1 min-w-0 space-y-1">
-                  <h3 className="text-sm sm:text-base font-bold text-brand-navy truncate">
-                    {item.productName}
-                  </h3>
-                  <p className="text-xs text-brand-teal font-medium">{item.variantName}</p>
-                  <p className="text-[11px] text-slate-400 font-mono">বারকোড: {item.barcode}</p>
-                  <div className="text-sm font-extrabold text-brand-navy pt-1 sm:hidden">
-                    {formatBDT(item.pricePoisha * item.quantity)}
+                  <div className="flex-1 min-w-0 space-y-0.5 sm:space-y-1">
+                    <h3 className="text-sm sm:text-base font-bold text-brand-navy truncate">
+                      {item.productName}
+                    </h3>
+                    <p className="text-xs text-brand-teal font-medium">{item.variantName}</p>
+                    <p className="text-[10px] sm:text-[11px] text-slate-400 font-mono">বারকোড: {item.barcode}</p>
+                    <div className="text-xs sm:text-sm font-extrabold text-brand-navy pt-0.5 sm:hidden">
+                      {formatBDT(item.pricePoisha * item.quantity)}
+                    </div>
                   </div>
                 </div>
 
-                {/* Quantity Controls */}
-                <div className="flex items-center gap-2">
+                {/* Quantity Controls & Line Total */}
+                <div className="flex items-center justify-between xs:justify-end gap-3 pt-2 xs:pt-0 border-t xs:border-t-0 border-slate-100">
                   <div className="flex items-center border border-slate-300 rounded-lg overflow-hidden bg-white text-xs">
                     <button
                       onClick={() => handleQtyChange(item.variantId, item.quantity, -1)}
@@ -150,16 +152,16 @@ export default function CartPage() {
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
-                </div>
 
-                {/* Line Total */}
-                <div className="hidden sm:block text-right min-w-[5rem]">
-                  <p className="text-base font-extrabold text-brand-navy">
-                    {formatBDT(item.pricePoisha * item.quantity)}
-                  </p>
-                  <p className="text-[10px] text-slate-400">
-                    {formatBDT(item.pricePoisha)} / পিস
-                  </p>
+                  {/* Line Total */}
+                  <div className="hidden sm:block text-right min-w-[5rem]">
+                    <p className="text-base font-extrabold text-brand-navy">
+                      {formatBDT(item.pricePoisha * item.quantity)}
+                    </p>
+                    <p className="text-[10px] text-slate-400">
+                      {formatBDT(item.pricePoisha)} / পিস
+                    </p>
+                  </div>
                 </div>
               </div>
             ))}

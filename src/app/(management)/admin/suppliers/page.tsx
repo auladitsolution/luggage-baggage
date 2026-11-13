@@ -264,12 +264,12 @@ export default function AdminSuppliersPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600">
-                <th className="py-3.5 px-4">প্রতিষ্ঠান ও কন্টাক্ট পারসন</th>
-                <th className="py-3.5 px-4">মোবাইল ও ঠিকানা</th>
-                <th className="py-3.5 px-4 text-right">মোট ক্রয়</th>
-                <th className="py-3.5 px-4 text-right">মোট পরিশোধ</th>
-                <th className="py-3.5 px-4 text-right">বর্তমান পাওনা (দেনা)</th>
-                <th className="py-3.5 px-4 text-center">অ্যাকশন</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">প্রতিষ্ঠান ও কন্টাক্ট পারসন</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">মোবাইল ও ঠিকানা</th>
+                <th className="py-3.5 px-4 text-right whitespace-nowrap">মোট ক্রয়</th>
+                <th className="py-3.5 px-4 text-right whitespace-nowrap">মোট পরিশোধ</th>
+                <th className="py-3.5 px-4 text-right whitespace-nowrap">বর্তমান পাওনা (দেনা)</th>
+                <th className="py-3.5 px-4 text-center whitespace-nowrap">অ্যাকশন</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm">

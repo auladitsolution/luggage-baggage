@@ -800,13 +800,13 @@ export default function AdminProductsPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-100">
                 <tr>
-                  <th className="py-3 px-4">পণ্য ও ছবি</th>
-                  <th className="py-3 px-4">ক্যাটাগরি ও ব্র্যান্ড</th>
-                  <th className="py-3 px-4">ভ্যারিয়েন্টসমূহ (সাইজ, বারকোড ও স্টক)</th>
-                  <th className="py-3 px-4">খুচরা মূল্য</th>
-                  <th className="py-3 px-4 text-center">মোট স্টক</th>
-                  <th className="py-3 px-4 text-center">স্ট্যাটাস</th>
-                  <th className="py-3 px-4 text-center">অ্যাকশন</th>
+                  <th className="py-3 px-4 whitespace-nowrap">পণ্য ও ছবি</th>
+                  <th className="py-3 px-4 whitespace-nowrap">ক্যাটাগরি ও ব্র্যান্ড</th>
+                  <th className="py-3 px-4 whitespace-nowrap min-w-[200px]">ভ্যারিয়েন্টসমূহ (সাইজ, বারকোড ও স্টক)</th>
+                  <th className="py-3 px-4 whitespace-nowrap">খুচরা মূল্য</th>
+                  <th className="py-3 px-4 text-center whitespace-nowrap">মোট স্টক</th>
+                  <th className="py-3 px-4 text-center whitespace-nowrap">স্ট্যাটাস</th>
+                  <th className="py-3 px-4 text-center whitespace-nowrap">অ্যাকশন</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">

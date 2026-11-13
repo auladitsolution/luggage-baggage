@@ -286,13 +286,13 @@ export default function AccountsPage() {
           <table className="w-full text-left text-sm text-slate-700">
             <thead className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
               <tr>
-                <th className="py-3.5 px-4">তারিখ</th>
-                <th className="py-3.5 px-4">ভাউচার নম্বর</th>
-                <th className="py-3.5 px-4">রেফারেন্স ধরণ</th>
-                <th className="py-3.5 px-4">বিবরণ</th>
-                <th className="py-3.5 px-4 text-right">ডেবিট (Debit)</th>
-                <th className="py-3.5 px-4 text-right">ক্রেডিট (Credit)</th>
-                <th className="py-3.5 px-4 text-center">ব্যালেন্স স্থিতি</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">তারিখ</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">ভাউচার নম্বর</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">রেফারেন্স ধরণ</th>
+                <th className="py-3.5 px-4 whitespace-nowrap min-w-[150px]">বিবরণ</th>
+                <th className="py-3.5 px-4 text-right whitespace-nowrap">ডেবিট (Debit)</th>
+                <th className="py-3.5 px-4 text-right whitespace-nowrap">ক্রেডিট (Credit)</th>
+                <th className="py-3.5 px-4 text-center whitespace-nowrap">ব্যালেন্স স্থিতি</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">

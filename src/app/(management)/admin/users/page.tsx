@@ -422,12 +422,12 @@ export default function AdminUsersPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-100">
                 <tr>
-                  <th className="py-3 px-4">নাম ও পরিচিতি</th>
-                  <th className="py-3 px-4">ইমেইল / ইউজারনেম</th>
-                  <th className="py-3 px-4">পদবি / রোল</th>
-                  <th className="py-3 px-4">স্ট্যাটাস</th>
-                  <th className="py-3 px-4">সর্বশেষ লগইন</th>
-                  <th className="py-3 px-4 text-right">পদক্ষেপ</th>
+                  <th className="py-3 px-4 whitespace-nowrap">নাম ও পরিচিতি</th>
+                  <th className="py-3 px-4 whitespace-nowrap">ইমেইল / ইউজারনেম</th>
+                  <th className="py-3 px-4 whitespace-nowrap">পদবি / রোল</th>
+                  <th className="py-3 px-4 whitespace-nowrap">স্ট্যাটাস</th>
+                  <th className="py-3 px-4 whitespace-nowrap">সর্বশেষ লগইন</th>
+                  <th className="py-3 px-4 text-right whitespace-nowrap">পদক্ষেপ</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">

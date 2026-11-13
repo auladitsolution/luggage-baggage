@@ -1,7 +1,14 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ShopSettingsProvider } from "@/context/ShopSettingsContext";
 import { AuthProvider } from "@/context/AuthContext";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#14263D",
+};
 
 export const metadata: Metadata = {
   title: "Luggage & Baggage (লাগেজ অ্যান্ড ব্যাগেজ) | যমুনা ফিউচার পার্ক, ঢাকা",

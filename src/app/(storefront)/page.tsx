@@ -91,41 +91,41 @@ export default function StorefrontHomePage() {
   return (
     <div className="space-y-12 sm:space-y-16 pb-12">
       {/* 1. Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-brand-navyDark via-brand-navy to-brand-navyLight text-white py-12 md:py-20 lg:py-24">
+      <section className="relative overflow-hidden bg-gradient-to-br from-brand-navyDark via-brand-navy to-brand-navyLight text-white py-10 sm:py-16 md:py-20 lg:py-24">
         {/* Subtle decorative glow */}
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-brand-teal/20 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 rounded-full bg-brand-gold/15 blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-72 sm:w-96 h-72 sm:h-96 rounded-full bg-brand-teal/20 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-72 sm:w-96 h-72 sm:h-96 rounded-full bg-brand-gold/15 blur-3xl pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Left Content */}
-            <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs sm:text-sm text-brand-gold font-medium">
-                <Sparkles className="w-4 h-4 text-brand-gold" />
-                <span>{STORE_INFO.nameBangla} - নতুন ট্রাভেল কালেকশন ২০২৬</span>
+            <div className="lg:col-span-7 space-y-4 sm:space-y-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs sm:text-sm text-brand-gold font-medium max-w-full">
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-gold shrink-0" />
+                <span className="truncate">{STORE_INFO.nameBangla} - নতুন ট্রাভেল কালেকশন ২০২৬</span>
               </div>
 
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-white">
+              <h1 className="text-2xl xs:text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-white">
                 {bn.storefront.heroTitle}
               </h1>
 
-              <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl font-light">
+              <p className="text-sm sm:text-base lg:text-lg text-slate-300 leading-relaxed max-w-2xl font-light">
                 {STORE_INFO.tagline}। শোরুম: {STORE_INFO.shortAddress}।
               </p>
 
-              <div className="flex flex-wrap items-center gap-4 pt-2">
+              <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-3 sm:gap-4 pt-2">
                 <Link
                   href="/shop"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-brand-gold text-brand-navy font-bold text-sm sm:text-base hover:bg-brand-goldLight transition-all shadow-lg hover:shadow-brand-gold/20"
+                  className="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl bg-brand-gold text-brand-navy font-bold text-sm sm:text-base hover:bg-brand-goldLight transition-all shadow-lg hover:shadow-brand-gold/20"
                 >
-                  <ShoppingBag className="w-5 h-5" />
+                  <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span>{bn.storefront.shopNow}</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
 
                 <Link
                   href="/pos"
-                  className="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-sm sm:text-base border border-white/20 transition-all"
+                  className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-sm sm:text-base border border-white/20 transition-all"
                 >
                   <Plane className="w-4 h-4 text-brand-teal" />
                   <span>দোকানের কাউন্টার পিওএস</span>
@@ -167,7 +167,7 @@ export default function StorefrontHomePage() {
 
       {/* 2. Value Propositions Bar */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 p-4 sm:p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
           <div className="flex items-center gap-3.5 p-2">
             <div className="w-12 h-12 rounded-xl bg-teal-50 text-brand-teal flex items-center justify-center flex-shrink-0">
               <Truck className="w-6 h-6" />
@@ -294,7 +294,7 @@ export default function StorefrontHomePage() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {featuredProducts.map((product) => {
             const firstVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
             const displayPrice = firstVariant?.discountPricePoisha || firstVariant?.retailPricePoisha || firstVariant?.pricePoisha || product.basePricePoisha || product.minPricePoisha || 0;

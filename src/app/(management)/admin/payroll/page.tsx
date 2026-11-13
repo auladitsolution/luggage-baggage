@@ -319,16 +319,16 @@ export default function PayrollPage() {
           <table className="w-full text-left text-sm text-slate-700">
             <thead className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
               <tr>
-                <th className="py-3.5 px-4">কর্মচারী</th>
-                <th className="py-3.5 px-4">মূল বেতন</th>
-                <th className="py-3.5 px-4">ভাতা</th>
-                <th className="py-3.5 px-4">বোনাস</th>
-                <th className="py-3.5 px-4">কর্তন</th>
-                <th className="py-3.5 px-4">প্রদেয় বেতন</th>
-                <th className="py-3.5 px-4">পরিশোধিত</th>
-                <th className="py-3.5 px-4">বকেয়া</th>
-                <th className="py-3.5 px-4 text-center">স্ট্যাটাস</th>
-                <th className="py-3.5 px-4 text-right">অ্যাকশন</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">কর্মচারী</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">মূল বেতন</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">ভাতা</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">বোনাস</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">কর্তন</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">প্রদেয় বেতন</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">পরিশোধিত</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">বকেয়া</th>
+                <th className="py-3.5 px-4 text-center whitespace-nowrap">স্ট্যাটাস</th>
+                <th className="py-3.5 px-4 text-right whitespace-nowrap">অ্যাকশন</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">

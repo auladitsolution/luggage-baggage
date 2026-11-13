@@ -301,7 +301,7 @@ export default function CheckoutPage() {
             {/* Delivery Zone */}
             <div className="space-y-1.5 text-xs">
               <label className="font-semibold text-slate-700 block">ডেলিভারি অঞ্চল:</label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 xs:grid-cols-2 gap-2.5 sm:gap-3">
                 <button
                   type="button"
                   onClick={() => setDeliveryZone("inside_dhaka")}

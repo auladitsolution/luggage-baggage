@@ -319,24 +319,24 @@ export default function AdminDashboardPage() {
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-100">
                   <tr>
-                    <th className="py-3 px-4">ইনভয়েস নং</th>
-                    <th className="py-3 px-4">কাস্টমার</th>
-                    <th className="py-3 px-4">আইটেম বিবরণ</th>
-                    <th className="py-3 px-4 text-right">মোট বিল</th>
-                    <th className="py-3 px-4">পেমেন্ট</th>
-                    <th className="py-3 px-4 text-center">রসিদ</th>
+                    <th className="py-3 px-4 whitespace-nowrap">ইনভয়েস নং</th>
+                    <th className="py-3 px-4 whitespace-nowrap">কাস্টমার</th>
+                    <th className="py-3 px-4 whitespace-nowrap min-w-[160px]">আইটেম বিবরণ</th>
+                    <th className="py-3 px-4 text-right whitespace-nowrap">মোট বিল</th>
+                    <th className="py-3 px-4 whitespace-nowrap">পেমেন্ট</th>
+                    <th className="py-3 px-4 text-center whitespace-nowrap">রসিদ</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {recentSales.map((sale) => (
                     <tr key={sale.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3.5 px-4 font-mono font-bold text-brand-navy">
+                      <td className="py-3.5 px-4 whitespace-nowrap font-mono font-bold text-brand-navy">
                         {sale.invoiceNumber}
                         <span className="block text-[10px] text-slate-400 font-normal">
                           {new Date(sale.createdAt).toLocaleDateString("bn-BD")}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-3.5 px-4 whitespace-nowrap">
                         <span className="font-semibold text-brand-text block">
                           {sale.customerName}
                         </span>
@@ -349,10 +349,10 @@ export default function AdminDashboardPage() {
                       <td className="py-3.5 px-4 text-slate-600 max-w-xs truncate">
                         {sale.itemsSummary}
                       </td>
-                      <td className="py-3.5 px-4 text-right font-bold text-brand-navy">
+                      <td className="py-3.5 px-4 text-right whitespace-nowrap font-bold text-brand-navy">
                         {formatBDT(sale.totalPoisha)}
                       </td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-3.5 px-4 whitespace-nowrap">
                         {sale.paymentStatus === "paid" ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700">
                             <CheckCircle2 className="w-3 h-3" />
@@ -369,7 +369,7 @@ export default function AdminDashboardPage() {
                           </span>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 text-center">
+                      <td className="py-3.5 px-4 text-center whitespace-nowrap">
                         <Link
                           href={`/print/receipt/${sale.id}`}
                           target="_blank"

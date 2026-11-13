@@ -212,15 +212,15 @@ export default function MoneyReceiptPrintPage({
             </div>
 
             {/* FIFO Invoice Allocations Table */}
-            <div className="my-4">
+            <div className="my-4 overflow-x-auto">
               <span className="font-bold text-slate-700 block mb-2">চালানভিত্তিক অর্থ সমন্বয় (FIFO Invoice Allocation):</span>
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 border-y border-slate-200 font-bold text-slate-700">
-                    <th className="py-2 px-3">নং</th>
-                    <th className="py-2 px-3">চালান নম্বর</th>
-                    <th className="py-2 px-3 text-right">বরাদ্দকৃত অর্থ</th>
-                    <th className="py-2 px-3 text-right">অবশিষ্ট বকেয়া</th>
+                    <th className="py-2 px-3 whitespace-nowrap">নং</th>
+                    <th className="py-2 px-3 whitespace-nowrap">চালান নম্বর</th>
+                    <th className="py-2 px-3 text-right whitespace-nowrap">বরাদ্দকৃত অর্থ</th>
+                    <th className="py-2 px-3 text-right whitespace-nowrap">অবশিষ্ট বকেয়া</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
