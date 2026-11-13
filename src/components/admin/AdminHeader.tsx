@@ -34,14 +34,14 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
         </button>
 
         <div className="lg:hidden flex items-center gap-2">
-          <img src="/logo.png" alt={settings.name} className="w-7 h-7 object-contain rounded-lg border border-slate-200 bg-white" />
-          <span className="font-bold text-xs text-brand-navy">{settings.name}</span>
+          <img src="/logo.png" alt={settings.nameBangla} className="w-7 h-7 object-contain rounded-lg border border-slate-200 bg-white" />
+          <span className="font-bold text-xs text-brand-navy notranslate" translate="no">{settings.nameBangla}</span>
         </div>
 
         {/* Store Active Indicator */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-teal-50 border border-teal-200 text-xs text-brand-teal font-medium">
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-teal-50 border border-teal-200 text-xs text-brand-teal font-medium notranslate" translate="no">
           <span className="w-2 h-2 rounded-full bg-brand-teal animate-pulse" />
-          <span>দোকান শাখা: <strong>{settings.name} ({settings.shortAddress})</strong></span>
+          <span>দোকান শাখা: <strong>{settings.nameBangla} ({settings.shortAddress})</strong></span>
         </div>
       </div>
 

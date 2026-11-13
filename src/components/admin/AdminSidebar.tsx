@@ -113,8 +113,10 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
             />
           </div>
           <div>
-            <span className="text-sm font-bold text-white tracking-tight">{settings.name}</span>
-            <span className="block text-[10px] text-brand-gold">{settings.nameBangla} • {settings.shortAddress}</span>
+            <span className="text-sm font-bold text-white tracking-tight notranslate" translate="no">{settings.nameBangla}</span>
+            <span className="block text-[10px] text-brand-gold notranslate" translate="no" suppressHydrationWarning>
+              {settings.name} • {settings.shortAddress}
+            </span>
           </div>
         </Link>
         {onClose && (
@@ -192,7 +194,7 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
               <span className="block font-semibold text-white truncate">
                 {session?.displayName || settings.owners || "Md. Sohel Sikder & Md. Alam"}
               </span>
-              <span className="block text-[10px] text-emerald-400 truncate">
+              <span className="block text-[10px] text-emerald-400 truncate notranslate" translate="no" suppressHydrationWarning>
                 {session?.roleNameBangla || "দোকানের মালিক"} • পাসওয়ার্ড পরিবর্তন
               </span>
             </div>

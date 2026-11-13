@@ -28,6 +28,11 @@ export const metadata: Metadata = {
     shortcut: ["/favicon.ico"],
   },
   manifest: "/manifest.json",
+  other: {
+    google: "notranslate",
+    robots: "notranslate",
+    "content-language": "bn",
+  },
 };
 
 export default function RootLayout({
@@ -36,8 +41,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="bn">
+    <html lang="bn" translate="no" className="notranslate" suppressHydrationWarning>
       <head>
+        <meta name="google" content="notranslate" />
+        <meta name="robots" content="notranslate" />
+        <meta httpEquiv="Content-Language" content="bn" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.png" type="image/png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -48,7 +56,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen bg-[#F8FAFC] text-[#0F172A] antialiased selection:bg-[#0D9488]/20 selection:text-[#0D9488]">
+      <body 
+        className="min-h-screen bg-[#F8FAFC] text-[#0F172A] antialiased selection:bg-[#0D9488]/20 selection:text-[#0D9488]"
+        suppressHydrationWarning
+      >
         <AuthProvider>
           <ShopSettingsProvider>
             {children}

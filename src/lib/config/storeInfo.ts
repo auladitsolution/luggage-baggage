@@ -6,7 +6,7 @@
 export const STORE_INFO = {
   name: "Luggage & Baggage",
   nameBangla: "লাগেজ অ্যান্ড ব্যাগেজ",
-  fullName: "Luggage & Baggage (লাগেজ অ্যান্ড ব্যাগেজ)",
+  fullName: "লাগেজ অ্যান্ড ব্যাগেজ (Luggage & Baggage)",
   tagline: "প্রিমিয়াম লাগেজ, ট্রলি ব্যাগ ও ভ্রমণ অনুষঙ্গের নির্ভরযোগ্য প্রতিষ্ঠান",
   
   // শোরুমের পূর্ণ ঠিকানা
