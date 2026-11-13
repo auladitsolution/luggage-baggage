@@ -159,7 +159,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <div>
-            © {new Date().getFullYear()} {settings.name} ({settings.nameBangla})। সর্বস্বত্ব সংরক্ষিত।
+            © {new Date().getFullYear()} {settings.name}. All rights reserved.
           </div>
           <div>
             Developed By{" "}

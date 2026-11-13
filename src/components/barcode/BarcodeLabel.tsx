@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import { generateBarcodeSVG } from "@/lib/barcode/code128";
-import { formatBDT } from "@/lib/utils";
 import { STORE_INFO } from "@/lib/config/storeInfo";
 
 interface BarcodeLabelProps {
@@ -20,8 +19,15 @@ export function BarcodeLabel({
   sku,
   barcode,
   retailPricePoisha,
-  storeName = `${STORE_INFO.name} (${STORE_INFO.nameBangla})`,
+  storeName = STORE_INFO.name,
 }: BarcodeLabelProps) {
+  // Sanitize store name: remove any Bengali/non-ASCII in parentheses so it stays purely English
+  const cleanStoreName = useMemo(() => {
+    return (storeName || STORE_INFO.name)
+      .replace(/\s*\([^\x00-\x7F]+\)\s*/g, "")
+      .trim() || STORE_INFO.name;
+  }, [storeName]);
+
   // Generate responsive Code-128 SVG barcode
   const barcodeSvg = useMemo(() => {
     return generateBarcodeSVG(barcode, {
@@ -32,7 +38,16 @@ export function BarcodeLabel({
     });
   }, [barcode]);
 
-  // Calculate dynamic font size to guarantee that the full Bengali product name fits on 1 line without cutting
+  // Format English price without Bengali currency sign (e.g. 480000 -> "4,800")
+  const formattedPrice = useMemo(() => {
+    const taka = retailPricePoisha / 100;
+    return new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(taka);
+  }, [retailPricePoisha]);
+
+  // Calculate dynamic font size to guarantee that the product name fits on 1 line without cutting
   const nameFontSize = useMemo(() => {
     const len = (productName || "").trim().length;
     if (len <= 14) return 11;
@@ -44,16 +59,25 @@ export function BarcodeLabel({
     return 6.5;
   }, [productName]);
 
+  // Dynamic font size for MRP line to guarantee it stays strictly on 1 line
+  const priceFontSize = useMemo(() => {
+    const textLen = `MRP: ${formattedPrice} TK. (VAT Including)`.length;
+    if (textLen <= 26) return 10;
+    if (textLen <= 30) return 9.5;
+    if (textLen <= 34) return 8.8;
+    return 8;
+  }, [formattedPrice]);
+
   return (
     <div className="w-[50mm] min-h-[35mm] max-w-[50mm] px-1.5 py-1.5 bg-white border border-slate-300 rounded shadow-xs text-center flex flex-col justify-between items-center font-sans box-border overflow-hidden select-none print:border-none print:p-0 print:m-0 print:shadow-none print:w-[50mm] print:min-h-[35mm]">
-      {/* Store Header */}
-      <div className="w-full text-[9px] font-bold text-slate-800 tracking-tight leading-tight line-clamp-2">
-        {storeName}
+      {/* Store Header - English Only, no Bengali */}
+      <div className="w-full text-[9px] font-bold text-slate-800 tracking-tight leading-tight whitespace-nowrap overflow-hidden text-ellipsis text-center">
+        {cleanStoreName}
       </div>
 
       {/* Product Details Section */}
       <div className="w-full my-0.5 space-y-0.5">
-        {/* Full Bengali Product Name: 1 line, responsive font size, NEVER cut off with ellipsis */}
+        {/* Product Name in English: 1 line, responsive font size */}
         <div
           className="w-full font-bold text-slate-900 leading-tight whitespace-nowrap overflow-hidden text-center tracking-tight"
           style={{
@@ -84,9 +108,12 @@ export function BarcodeLabel({
         dangerouslySetInnerHTML={{ __html: barcodeSvg }}
       />
 
-      {/* Price / MRP */}
-      <div className="w-full text-[11px] font-black text-slate-900 border-t border-dashed border-slate-300 pt-0.5 leading-tight text-center">
-        এমআরপি: {formatBDT(retailPricePoisha)}
+      {/* Price / MRP - Guaranteed strictly 1 single line in English */}
+      <div
+        className="w-full font-black text-slate-900 border-t border-dashed border-slate-300 pt-0.5 leading-tight text-center whitespace-nowrap tracking-tight"
+        style={{ fontSize: `${priceFontSize}px` }}
+      >
+        MRP: {formattedPrice} TK. (VAT Including)
       </div>
     </div>
   );

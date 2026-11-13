@@ -16,6 +16,7 @@ export default function BarcodePrintPage({
   const [loading, setLoading] = useState(true);
   const [selectedVariantId, setSelectedVariantId] = useState<string>("");
   const [copies, setCopies] = useState<number>(1);
+  const [customProductName, setCustomProductName] = useState<string>("");
 
   useEffect(() => {
     async function fetchProduct() {
@@ -24,6 +25,7 @@ export default function BarcodePrintPage({
         const data = await res.json();
         if (data.product) {
           setProduct(data.product);
+          setCustomProductName(data.product.nameEnglish || data.product.nameBangla || "");
           if (data.product.variants?.length > 0) {
             setSelectedVariantId(data.product.variants[0]._id);
           }
@@ -76,14 +78,25 @@ export default function BarcodePrintPage({
               বারকোড লেবেল প্রিন্টার
             </h1>
             <p className="text-xs text-slate-500">
-              {product.nameBangla}
+              {product.nameEnglish || product.nameBangla}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1.5 text-xs text-slate-600">
-            <span>কপি সংখ্যা:</span>
+            <span className="font-semibold">লেবেল পণ্যের নাম (English):</span>
+            <input
+              type="text"
+              value={customProductName}
+              onChange={(e) => setCustomProductName(e.target.value)}
+              placeholder="e.g. Hardshell Trolley Luggage"
+              className="w-48 sm:w-60 px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-brand-teal"
+            />
+          </div>
+
+          <div className="flex items-center gap-1.5 text-xs text-slate-600">
+            <span className="font-semibold">কপি:</span>
             <input
               type="number"
               min="1"
@@ -96,7 +109,7 @@ export default function BarcodePrintPage({
 
           <button
             onClick={() => window.print()}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-teal hover:bg-brand-tealLight text-white font-bold text-xs shadow-sm transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-teal hover:bg-brand-tealLight text-white font-bold text-xs shadow-sm transition-colors cursor-pointer"
           >
             <Printer className="w-4 h-4" />
             <span>প্রিন্ট করুন</span>
@@ -113,13 +126,13 @@ export default function BarcodePrintPage({
           <button
             key={v._id}
             onClick={() => setSelectedVariantId(v._id)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               selectedVariant?._id === v._id
                 ? "bg-brand-navy text-white shadow-xs"
                 : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
             }`}
           >
-            {v.nameVariant} ({formatBDT(v.retailPricePoisha)})
+            {v.nameVariant} ({new Intl.NumberFormat("en-US").format(v.retailPricePoisha / 100)} TK)
           </button>
         ))}
       </div>
@@ -130,7 +143,7 @@ export default function BarcodePrintPage({
           Array.from({ length: copies }).map((_, idx) => (
             <div key={idx} className="print:m-0 print:break-inside-avoid">
               <BarcodeLabel
-                productName={product.nameBangla}
+                productName={customProductName || product.nameEnglish || product.nameBangla}
                 variantName={selectedVariant.nameVariant}
                 sku={selectedVariant.sku}
                 barcode={selectedVariant.barcode}
