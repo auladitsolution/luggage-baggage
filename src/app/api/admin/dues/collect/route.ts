@@ -10,7 +10,7 @@ import { getMockStore } from "@/lib/db/memoryStore";
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await requirePermission("dues.collect");
+    const session = await requirePermission("dues.collect", req);
     const body = await req.json();
 
     const {

@@ -11,7 +11,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await requirePermission("sales.create");
+    const session = await requirePermission("sales.create", req);
     const { id } = await params;
     const body = await req.json();
     const { orderStatus, courierName, trackingNumber, internalNotes } = body;

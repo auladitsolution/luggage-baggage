@@ -11,7 +11,7 @@ import mongoose from "mongoose";
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await requirePermission("inventory.adjust");
+    const session = await requirePermission("inventory.adjust", req);
     const body = await req.json();
 
     const { variantId, locationId, quantityChange, reason } = body;

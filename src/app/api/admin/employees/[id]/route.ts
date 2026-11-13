@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requirePermission("payroll.read");
+    await requirePermission("payroll.read", req);
     const { id } = await params;
     const db = await connectToDatabase();
 
@@ -41,7 +41,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requirePermission("payroll.manage");
+    await requirePermission("payroll.manage", req);
     const { id } = await params;
     const body = await req.json();
 

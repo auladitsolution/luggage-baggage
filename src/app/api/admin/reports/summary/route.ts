@@ -14,7 +14,7 @@ import { getMockStore } from "@/lib/db/memoryStore";
 
 export async function GET(req: NextRequest) {
   try {
-    await requirePermission("reports.read");
+    await requirePermission("reports.read", req);
     const { searchParams } = new URL(req.url);
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");

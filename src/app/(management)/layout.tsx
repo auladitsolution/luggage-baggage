@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminHeader from "@/components/admin/AdminHeader";
 
@@ -10,6 +10,43 @@ export default function ManagementLayout({
   children: React.ReactNode;
 }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    // Intercept client-side fetch calls within admin to guarantee credentials & bearer token are included
+    if (typeof window === "undefined") return;
+    const originalFetch = window.fetch;
+    window.fetch = async function (input: RequestInfo | URL, init?: RequestInit) {
+      try {
+        const urlString =
+          typeof input === "string"
+            ? input
+            : input instanceof URL
+            ? input.toString()
+            : (input as Request)?.url || "";
+
+        if (urlString.startsWith("/api/") || urlString.includes("/api/")) {
+          const options: RequestInit = {
+            ...init,
+            credentials: init?.credentials || "include",
+          };
+          const headers = new Headers(options.headers || {});
+          const token = localStorage.getItem("lumina_auth_token");
+          if (token && !headers.has("Authorization")) {
+            headers.set("Authorization", `Bearer ${token}`);
+          }
+          options.headers = headers;
+          return originalFetch(input, options);
+        }
+      } catch {
+        // Fallback to default fetch if interceptor throws
+      }
+      return originalFetch(input, init);
+    };
+
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, []);
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">

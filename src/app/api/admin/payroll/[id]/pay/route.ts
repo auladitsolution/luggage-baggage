@@ -12,7 +12,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await requirePermission("payroll.manage");
+    const session = await requirePermission("payroll.manage", req);
     const { id } = await params;
     const body = await req.json();
 

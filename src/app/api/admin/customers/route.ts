@@ -6,7 +6,7 @@ import { getMockStore } from "@/lib/db/memoryStore";
 
 export async function GET(req: NextRequest) {
   try {
-    await requirePermission("customers.read");
+    await requirePermission("customers.read", req);
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("search") || "";
 
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    await requirePermission("customers.update");
+    await requirePermission("customers.update", req);
     const body = await req.json();
     const { name, phone, email, address, creditLimitPoisha } = body;
 

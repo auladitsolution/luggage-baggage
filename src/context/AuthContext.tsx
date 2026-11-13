@@ -23,7 +23,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchSession = useCallback(async () => {
     try {
-      const res = await fetch("/api/auth/me");
+      const token = typeof window !== "undefined" ? localStorage.getItem("lumina_auth_token") : null;
+      const headers: Record<string, string> = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const res = await fetch("/api/auth/me", {
+        credentials: "include",
+        headers,
+      });
       if (res.ok) {
         const data = await res.json();
         if (data?.authenticated && data?.user) {
@@ -52,10 +59,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
+      await fetch("/api/auth/session", { method: "DELETE" });
       await fetch("/api/auth/logout", { method: "POST" });
     } catch {
       // ignore
     } finally {
+      try {
+        localStorage.removeItem("lumina_auth_token");
+      } catch {}
       setUser(null);
       window.dispatchEvent(new Event("auth_state_changed"));
       window.location.href = "/login";

@@ -51,7 +51,7 @@ export default function AdminSuppliersPage() {
   const loadSuppliers = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/admin/suppliers?search=${encodeURIComponent(search)}`);
+      const res = await fetch(`/api/admin/suppliers?search=${encodeURIComponent(search)}`, { credentials: "include" });
       const data = await res.json();
       if (data.suppliers) {
         setSuppliers(data.suppliers);
@@ -82,6 +82,7 @@ export default function AdminSuppliersPage() {
       const res = await fetch("/api/admin/suppliers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           name: newName.trim(),
           contactPerson: newContactPerson.trim() || undefined,
@@ -138,6 +139,7 @@ export default function AdminSuppliersPage() {
       const res = await fetch("/api/admin/suppliers/pay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           supplierId: selectedSupplier._id,
           amountPoisha: Math.round(parsedAmount * 100),

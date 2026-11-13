@@ -8,7 +8,7 @@ import { getNextJournalNumber } from "@/lib/accounting/journalSequence";
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await requirePermission("settings.manage");
+    const session = await requirePermission("settings.manage", req);
     const body = await req.json();
 
     const {

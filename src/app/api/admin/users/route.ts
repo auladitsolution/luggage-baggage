@@ -6,10 +6,10 @@ import { requirePermission } from "@/lib/rbac/guards";
 import { getMockStore } from "@/lib/db/memoryStore";
 import { hashPassword } from "@/lib/auth/password";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     // Enforce deny-by-default server permission
-    await requirePermission("users.manage");
+    await requirePermission("users.manage", req);
     const db = await connectToDatabase();
 
     if (!db) {
@@ -43,7 +43,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const currentSession = await requirePermission("users.manage");
+    const currentSession = await requirePermission("users.manage", req);
     const { displayName, email, username, password, roleId, phone } = await req.json();
 
     if (!displayName || !displayName.trim()) {
@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const currentSession = await requirePermission("users.manage");
+    const currentSession = await requirePermission("users.manage", req);
     const { userId, roleId, isActive, newPassword, displayName, phone } = await req.json();
 
     if (!userId) {

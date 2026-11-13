@@ -8,7 +8,7 @@ import { getMockStore } from "@/lib/db/memoryStore";
 
 export async function GET(req: NextRequest) {
   try {
-    await requirePermission("expenses.create");
+    await requirePermission("expenses.create", req);
     const { searchParams } = new URL(req.url);
     const category = searchParams.get("category");
 
@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await requirePermission("expenses.create");
+    const session = await requirePermission("expenses.create", req);
     const body = await req.json();
 
     const {

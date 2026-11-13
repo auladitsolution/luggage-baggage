@@ -72,6 +72,12 @@ function LoginForm() {
         throw new Error(data.error || "লগইন করতে ব্যর্থ হয়েছে।");
       }
 
+      if (data.token) {
+        try {
+          localStorage.setItem("lumina_auth_token", data.token);
+        } catch {}
+      }
+
       setSuccess(`স্বাগতম, ${data.user.displayName}! সফলভাবে লগইন হয়েছে।`);
       window.dispatchEvent(new Event("auth_state_changed"));
 
@@ -208,6 +214,12 @@ function LoginForm() {
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "লগইন করতে ব্যর্থ হয়েছে");
+      }
+
+      if (data.token) {
+        try {
+          localStorage.setItem("lumina_auth_token", data.token);
+        } catch {}
       }
 
       setSuccess(`স্বাগতম, ${data.user.displayName}! সফলভাবে লগইন হয়েছে।`);

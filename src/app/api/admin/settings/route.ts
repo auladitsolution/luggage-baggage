@@ -28,9 +28,9 @@ const DEFAULT_SETTINGS_PAYLOAD = {
   businessHours: STORE_INFO.businessHoursBangla,
 };
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    await requirePermission("settings.manage");
+    await requirePermission("settings.manage", req);
     const db = await connectToDatabase();
 
     if (!db) {
@@ -63,7 +63,7 @@ export async function GET() {
 
 export async function PUT(req: NextRequest) {
   try {
-    await requirePermission("settings.manage");
+    await requirePermission("settings.manage", req);
     const body = await req.json();
 
     const db = await connectToDatabase();

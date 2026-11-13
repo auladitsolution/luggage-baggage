@@ -5,7 +5,7 @@ import { uploadImageToCloudinary } from "@/lib/cloudinary/upload";
 export async function POST(req: NextRequest) {
   try {
     // Require products.create or products.update permission
-    await requirePermission("products.create");
+    await requirePermission("products.create", req);
 
     const contentType = req.headers.get("content-type") || "";
 

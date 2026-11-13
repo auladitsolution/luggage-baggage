@@ -9,7 +9,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await requirePermission("expenses.approve");
+    const session = await requirePermission("expenses.approve", req);
     const { id } = await params;
     const body = await req.json();
     const { status } = body;

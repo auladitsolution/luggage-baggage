@@ -7,7 +7,7 @@ import { getMockStore } from "@/lib/db/memoryStore";
 
 export async function GET(req: NextRequest) {
   try {
-    await requirePermission("dues.read");
+    await requirePermission("dues.read", req);
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("search") || "";
 

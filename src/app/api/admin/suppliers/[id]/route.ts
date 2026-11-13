@@ -11,7 +11,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requirePermission("purchases.read");
+    await requirePermission("purchases.read", req);
     const { id } = await params;
     const db = await connectToDatabase();
 
@@ -70,7 +70,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requirePermission("purchases.update");
+    await requirePermission("purchases.update", req);
     const { id } = await params;
     const body = await req.json();
 

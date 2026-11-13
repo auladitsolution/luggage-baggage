@@ -6,9 +6,9 @@ import { Product } from "@/models/Product";
 import { requirePermission } from "@/lib/rbac/guards";
 import { getMockStore } from "@/lib/db/memoryStore";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    await requirePermission("reports.read");
+    await requirePermission("reports.read", req);
     const db = await connectToDatabase();
 
     if (!db) {

@@ -4,9 +4,9 @@ import { FinancialAccount } from "@/models/FinancialAccount";
 import { requirePermission } from "@/lib/rbac/guards";
 import { getMockStore } from "@/lib/db/memoryStore";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    await requirePermission("reports.read");
+    await requirePermission("reports.read", req);
     const db = await connectToDatabase();
 
     if (!db) {
@@ -82,7 +82,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    await requirePermission("settings.manage");
+    await requirePermission("settings.manage", req);
     const body = await req.json();
 
     const {

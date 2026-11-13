@@ -13,7 +13,7 @@ import { resolveProductVariant } from "@/lib/catalog/variantUtils";
 
 export async function GET(req: NextRequest) {
   try {
-    await requirePermission("purchases.read");
+    await requirePermission("purchases.read", req);
     const { searchParams } = new URL(req.url);
     const supplierId = searchParams.get("supplierId");
 
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await requirePermission("purchases.create");
+    const session = await requirePermission("purchases.create", req);
     const body = await req.json();
 
     const {

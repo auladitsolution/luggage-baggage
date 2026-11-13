@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requirePermission("dues.read");
+    await requirePermission("dues.read", req);
     const { id } = await params;
     const db = await connectToDatabase();
 

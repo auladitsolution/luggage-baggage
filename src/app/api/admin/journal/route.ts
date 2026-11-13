@@ -7,7 +7,7 @@ import { getNextJournalNumber } from "@/lib/accounting/journalSequence";
 
 export async function GET(req: NextRequest) {
   try {
-    await requirePermission("reports.read");
+    await requirePermission("reports.read", req);
     const { searchParams } = new URL(req.url);
     const referenceType = searchParams.get("referenceType");
     const startDate = searchParams.get("startDate");
@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await requirePermission("settings.manage");
+    const session = await requirePermission("settings.manage", req);
     const body = await req.json();
 
     const {

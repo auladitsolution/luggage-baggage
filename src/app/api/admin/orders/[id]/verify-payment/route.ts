@@ -9,7 +9,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await requirePermission("sales.create");
+    const session = await requirePermission("sales.create", req);
     const { id } = await params;
     const db = await connectToDatabase();
 

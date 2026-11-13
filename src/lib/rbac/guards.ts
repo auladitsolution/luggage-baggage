@@ -23,9 +23,26 @@ export async function getSession(req?: NextRequest): Promise<IUserSession | null
       req.cookies.get("lumina_session")?.value;
 
     if (!sessionToken) {
-      const authHeader = req.headers.get("authorization");
+      const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
       if (authHeader && authHeader.toLowerCase().startsWith("bearer ")) {
         sessionToken = authHeader.slice(7).trim();
+      }
+    }
+
+    if (!sessionToken) {
+      sessionToken = req.headers.get("x-session-token") || undefined;
+    }
+
+    // Direct raw cookie string fallback from headers
+    if (!sessionToken) {
+      const rawCookie = req.headers.get("cookie") || "";
+      if (rawCookie) {
+        const match =
+          rawCookie.match(new RegExp(`(?:^|;\\s*)${SESSION_COOKIE_NAME}=([^;]+)`)) ||
+          rawCookie.match(/(?:^|;\s*)lumina_session=([^;]+)/);
+        if (match && match[1]) {
+          sessionToken = match[1];
+        }
       }
     }
   }
@@ -37,6 +54,34 @@ export async function getSession(req?: NextRequest): Promise<IUserSession | null
       sessionToken =
         cookieStore.get(SESSION_COOKIE_NAME)?.value ||
         cookieStore.get("lumina_session")?.value;
+    } catch {
+      // ignore
+    }
+  }
+
+  // 3. Read from next/headers headers() as fallback if req was not passed
+  if (!sessionToken) {
+    try {
+      const { headers } = await import("next/headers");
+      const headerStore = await headers();
+      const authHeader = headerStore.get("authorization") || headerStore.get("Authorization");
+      if (authHeader && authHeader.toLowerCase().startsWith("bearer ")) {
+        sessionToken = authHeader.slice(7).trim();
+      }
+      if (!sessionToken) {
+        sessionToken = headerStore.get("x-session-token") || undefined;
+      }
+      if (!sessionToken) {
+        const rawCookie = headerStore.get("cookie") || "";
+        if (rawCookie) {
+          const match =
+            rawCookie.match(new RegExp(`(?:^|;\\s*)${SESSION_COOKIE_NAME}=([^;]+)`)) ||
+            rawCookie.match(/(?:^|;\s*)lumina_session=([^;]+)/);
+          if (match && match[1]) {
+            sessionToken = match[1];
+          }
+        }
+      }
     } catch {
       // ignore
     }
@@ -78,25 +123,29 @@ export async function getSession(req?: NextRequest): Promise<IUserSession | null
     try {
       const decoded = await verifySessionCookie(sessionToken);
       if (decoded) {
-        const db = await connectToDatabase();
-        if (db) {
-          const user = await User.findOne({ firebaseUid: decoded.uid }).populate<{ roleId: IRoleDocument }>("roleId");
+        try {
+          const db = await connectToDatabase();
+          if (db) {
+            const user = await User.findOne({ firebaseUid: decoded.uid }).populate<{ roleId: IRoleDocument }>("roleId");
 
-          if (user && user.isActive) {
-            const role = user.roleId as IRoleDocument;
-            return {
-              userId: user._id.toString(),
-              firebaseUid: user.firebaseUid || decoded.uid,
-              email: user.email,
-              displayName: user.displayName,
-              photoUrl: user.photoUrl,
-              roleSlug: "customer",
-              roleNameBangla: "সাধারণ ক্রেতা",
-              isOwner: false,
-              permissions: [],
-              authMethod: "google",
-            };
+            if (user && user.isActive) {
+              const role = user.roleId as IRoleDocument;
+              return {
+                userId: user._id.toString(),
+                firebaseUid: user.firebaseUid || decoded.uid,
+                email: user.email,
+                displayName: user.displayName,
+                photoUrl: user.photoUrl,
+                roleSlug: "customer",
+                roleNameBangla: "সাধারণ ক্রেতা",
+                isOwner: false,
+                permissions: [],
+                authMethod: "google",
+              };
+            }
           }
+        } catch (dbErr) {
+          console.warn("DB error during Firebase session lookup:", dbErr);
         }
       }
     } catch (err) {
@@ -111,64 +160,69 @@ export async function getSession(req?: NextRequest): Promise<IUserSession | null
 
     if (parsed && (parsed.firebaseUid || parsed.userId || parsed.email)) {
       const isGoogleAuth = parsed.authMethod === "google";
-      const db = await connectToDatabase();
-      if (db) {
-        const isMongoId = typeof parsed.userId === "string" && /^[0-9a-fA-F]{24}$/.test(parsed.userId);
-        const orConditions: any[] = [];
-        if (isMongoId) {
-          orConditions.push({ _id: parsed.userId });
-        }
-        if (parsed.firebaseUid) {
-          orConditions.push({ firebaseUid: parsed.firebaseUid });
-        }
-        if (parsed.email) {
-          orConditions.push({ email: parsed.email.toLowerCase() });
-        }
 
-        const user = orConditions.length > 0
-          ? await User.findOne({ $or: orConditions }).populate<{ roleId: IRoleDocument }>("roleId")
-          : null;
+      try {
+        const db = await connectToDatabase();
+        if (db) {
+          const isMongoId = typeof parsed.userId === "string" && /^[0-9a-fA-F]{24}$/.test(parsed.userId);
+          const orConditions: any[] = [];
+          if (isMongoId) {
+            orConditions.push({ _id: parsed.userId });
+          }
+          if (parsed.firebaseUid) {
+            orConditions.push({ firebaseUid: parsed.firebaseUid });
+          }
+          if (parsed.email) {
+            orConditions.push({ email: parsed.email.toLowerCase() });
+          }
 
-        if (user && user.isActive) {
-          const role = user.roleId as IRoleDocument;
-          const isOwner = isGoogleAuth ? false : (user.isOwner || role?.slug === "owner" || parsed.isOwner || parsed.roleSlug === "owner");
-          const roleSlug = isGoogleAuth ? "customer" : ((role?.slug as RoleSlug) || (parsed.roleSlug as RoleSlug) || (isOwner ? "owner" : "customer"));
-          const permissions = isGoogleAuth
-            ? []
-            : (isOwner ? [...ALL_PERMISSIONS] : ((role?.permissions as Permission[]) || (parsed.permissions as Permission[]) || []));
+          const user = orConditions.length > 0
+            ? await User.findOne({ $or: orConditions }).populate<{ roleId: IRoleDocument }>("roleId")
+            : null;
 
-          return {
-            userId: user._id.toString(),
-            firebaseUid: user.firebaseUid || parsed.firebaseUid || `usr-${user._id}`,
-            email: user.email,
-            displayName: user.displayName,
-            photoUrl: user.photoUrl,
-            roleSlug,
-            roleNameBangla: isGoogleAuth ? "সাধারণ ক্রেতা" : (role?.nameBangla || parsed.roleNameBangla || "দোকানের কর্মী"),
-            isOwner,
-            permissions,
-            authMethod: isGoogleAuth ? "google" : "credentials",
-          };
+          if (user && user.isActive) {
+            const role = user.roleId as IRoleDocument;
+            const isOwner = isGoogleAuth ? false : (user.isOwner || role?.slug === "owner" || parsed.isOwner || parsed.roleSlug === "owner");
+            const roleSlug = isGoogleAuth ? "customer" : ((role?.slug as RoleSlug) || (parsed.roleSlug as RoleSlug) || (isOwner ? "owner" : "customer"));
+            const permissions = isGoogleAuth
+              ? []
+              : (isOwner ? [...ALL_PERMISSIONS] : ((role?.permissions as Permission[]) || (parsed.permissions as Permission[]) || []));
+
+            return {
+              userId: user._id.toString(),
+              firebaseUid: user.firebaseUid || parsed.firebaseUid || `usr-${user._id}`,
+              email: user.email,
+              displayName: user.displayName,
+              photoUrl: user.photoUrl,
+              roleSlug,
+              roleNameBangla: isGoogleAuth ? "সাধারণ ক্রেতা" : (role?.nameBangla || parsed.roleNameBangla || "দোকানের কর্মী"),
+              isOwner,
+              permissions,
+              authMethod: isGoogleAuth ? "google" : "credentials",
+            };
+          }
+        } else {
+          const store = getMockStore();
+          const user = store.users.find((u) => u._id === parsed.userId || u.firebaseUid === parsed.firebaseUid);
+          if (user && user.isActive) {
+            const role = user.roleId;
+            const isOwner = isGoogleAuth ? false : (user.isOwner || role?.slug === "owner" || parsed.isOwner || parsed.roleSlug === "owner");
+            return {
+              userId: user._id,
+              firebaseUid: user.firebaseUid || parsed.firebaseUid || `usr-${user._id}`,
+              email: user.email,
+              displayName: user.displayName,
+              photoUrl: user.photoUrl,
+              roleSlug: isGoogleAuth ? "customer" : ((role?.slug as RoleSlug) || (parsed.roleSlug as RoleSlug) || (isOwner ? "owner" : "customer")),
+              roleNameBangla: isGoogleAuth ? "সাধারণ ক্রেতা" : (role?.nameBangla || parsed.roleNameBangla || "দোকানের কর্মী"),
+              isOwner,
+              permissions: isGoogleAuth ? [] : (isOwner ? [...ALL_PERMISSIONS] : ((role?.permissions as Permission[]) || [])),
+              authMethod: isGoogleAuth ? "google" : "credentials",
+            };
+          }
         }
-      } else {
-        const store = getMockStore();
-        const user = store.users.find((u) => u._id === parsed.userId || u.firebaseUid === parsed.firebaseUid);
-        if (user && user.isActive) {
-          const role = user.roleId;
-          const isOwner = isGoogleAuth ? false : (user.isOwner || role?.slug === "owner" || parsed.isOwner || parsed.roleSlug === "owner");
-          return {
-            userId: user._id,
-            firebaseUid: user.firebaseUid || parsed.firebaseUid || `usr-${user._id}`,
-            email: user.email,
-            displayName: user.displayName,
-            photoUrl: user.photoUrl,
-            roleSlug: isGoogleAuth ? "customer" : ((role?.slug as RoleSlug) || (parsed.roleSlug as RoleSlug) || (isOwner ? "owner" : "customer")),
-            roleNameBangla: isGoogleAuth ? "সাধারণ ক্রেতা" : (role?.nameBangla || parsed.roleNameBangla || "দোকানের কর্মী"),
-            isOwner,
-            permissions: isGoogleAuth ? [] : (isOwner ? [...ALL_PERMISSIONS] : ((role?.permissions as Permission[]) || [])),
-            authMethod: isGoogleAuth ? "google" : "credentials",
-          };
-        }
+      } catch (dbErr) {
+        console.warn("MongoDB Atlas connection error during session check (safe fallback active):", dbErr);
       }
 
       // 3. Fallback: Reconstruct valid session directly from parsed token

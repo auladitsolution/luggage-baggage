@@ -32,7 +32,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    await requirePermission("settings.manage");
+    await requirePermission("settings.manage", req);
     const body = await req.json();
     const { name, code, address, isDefault } = body;
 

@@ -57,7 +57,7 @@ export default function AdminCustomersPage() {
   const loadCustomers = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/admin/customers?search=${encodeURIComponent(search)}`);
+      const res = await fetch(`/api/admin/customers?search=${encodeURIComponent(search)}`, { credentials: "include" });
       const data = await res.json();
       if (data.customers) {
         setCustomers(data.customers);
@@ -87,6 +87,7 @@ export default function AdminCustomersPage() {
       const res = await fetch("/api/admin/customers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           name: newName.trim(),
           phone: newPhone.trim(),
@@ -131,6 +132,7 @@ export default function AdminCustomersPage() {
       const res = await fetch(`/api/admin/customers/${editingCustomer._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           creditLimitPoisha: Math.round((parseFloat(editCreditLimitBDT) || 0) * 100),
         }),
