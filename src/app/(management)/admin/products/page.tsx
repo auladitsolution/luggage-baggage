@@ -67,6 +67,14 @@ export default function AdminProductsPage() {
   const [submittingQuickCat, setSubmittingQuickCat] = useState(false);
   const [quickCatTarget, setQuickCatTarget] = useState<"create" | "edit">("create");
 
+  // Category and Brand Deletion States
+  const [deletingBrandId, setDeletingBrandId] = useState<string | null>(null);
+  const [deletingCatId, setDeletingCatId] = useState<string | null>(null);
+  const [brandActionError, setBrandActionError] = useState<string>("");
+  const [catActionError, setCatActionError] = useState<string>("");
+  const [brandSearch, setBrandSearch] = useState<string>("");
+  const [catSearch, setCatSearch] = useState<string>("");
+
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -375,6 +383,81 @@ export default function AdminProductsPage() {
       alert(err.message || "ক্যাটাগরি তৈরি করা সম্ভব হয়নি");
     } finally {
       setSubmittingQuickCat(false);
+    }
+  };
+
+  // Helper counts for linked products
+  const getBrandProductCount = (bId: string) => {
+    return products.filter((p) => (p.brandId?._id || p.brandId) === bId).length;
+  };
+
+  const getCatProductCount = (cId: string) => {
+    return products.filter(
+      (p) =>
+        (p.categoryId?._id || p.categoryId) === cId ||
+        (p.subCategoryId?._id || p.subCategoryId) === cId
+    ).length;
+  };
+
+  // Delete Brand Handler
+  const handleDeleteBrand = async (bId: string, bName: string) => {
+    setBrandActionError("");
+    if (!confirm(`আপনি কি নিশ্চিতভাবে "${bName}" ব্র্যান্ডটি ডিলিট করতে চান?`)) {
+      return;
+    }
+
+    try {
+      setDeletingBrandId(bId);
+      const res = await fetch(`/api/admin/brands/${bId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "ব্র্যান্ড ডিলিট করতে সমস্যা হয়েছে");
+      }
+
+      setBrands((prev) => prev.filter((b) => b._id !== bId));
+      if (brandId === bId) setBrandId("");
+      if (editBrandId === bId) setEditBrandId("");
+
+      setSuccessMsg(data.message || `"${bName}" ব্র্যান্ড সফলভাবে মুছে ফেলা হয়েছে।`);
+    } catch (err: any) {
+      setBrandActionError(err.message || "ব্র্যান্ড ডিলিট করা সম্ভব হয়নি");
+    } finally {
+      setDeletingBrandId(null);
+    }
+  };
+
+  // Delete Category Handler
+  const handleDeleteCategory = async (cId: string, cName: string) => {
+    setCatActionError("");
+    if (!confirm(`আপনি কি নিশ্চিতভাবে "${cName}" ক্যাটাগরি ডিলিট করতে চান?`)) {
+      return;
+    }
+
+    try {
+      setDeletingCatId(cId);
+      const res = await fetch(`/api/admin/categories/${cId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "ক্যাটাগরি ডিলিট করতে সমস্যা হয়েছে");
+      }
+
+      setCategories((prev) => prev.filter((c) => c._id !== cId));
+      if (categoryId === cId) setCategoryId("");
+      if (editCategoryId === cId) setEditCategoryId("");
+
+      setSuccessMsg(data.message || `"${cName}" ক্যাটাগরি সফলভাবে মুছে ফেলা হয়েছে।`);
+    } catch (err: any) {
+      setCatActionError(err.message || "ক্যাটাগরি ডিলিট করা সম্ভব হয়নি");
+    } finally {
+      setDeletingCatId(null);
     }
   };
 
@@ -690,17 +773,43 @@ export default function AdminProductsPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => {
-            setIsModalOpen(true);
-            if (categories.length > 0 && !categoryId) setCategoryId(categories[0]._id);
-            if (brands.length > 0 && !brandId) setBrandId(brands[0]._id);
-          }}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-brand-teal hover:bg-brand-tealLight text-white font-bold text-xs shadow-sm transition-colors cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>নতুন লাগেজ যুক্ত করুন</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => {
+              setBrandActionError("");
+              setBrandSearch("");
+              setIsQuickBrandModalOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs shadow-xs transition-colors cursor-pointer"
+          >
+            <Tag className="w-3.5 h-3.5 text-brand-teal" />
+            <span>ব্র্যান্ড পরিচালনা</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setCatActionError("");
+              setCatSearch("");
+              setIsQuickCatModalOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs shadow-xs transition-colors cursor-pointer"
+          >
+            <FolderPlus className="w-3.5 h-3.5 text-brand-teal" />
+            <span>ক্যাটাগরি পরিচালনা</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setIsModalOpen(true);
+              if (categories.length > 0 && !categoryId) setCategoryId(categories[0]._id);
+              if (brands.length > 0 && !brandId) setBrandId(brands[0]._id);
+            }}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-teal hover:bg-brand-tealLight text-white font-bold text-xs shadow-sm transition-colors cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>নতুন লাগেজ যুক্ত করুন</span>
+          </button>
+        </div>
       </div>
 
       {/* Success Notification */}
@@ -1011,12 +1120,14 @@ export default function AdminProductsPage() {
                       type="button"
                       onClick={() => {
                         setQuickBrandTarget("create");
+                        setBrandActionError("");
+                        setBrandSearch("");
                         setIsQuickBrandModalOpen(true);
                       }}
                       className="text-[11px] font-bold text-brand-teal hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       <Plus className="w-3 h-3" />
-                      <span>নতুন ব্র্যান্ড তৈরি</span>
+                      <span>ব্র্যান্ড তৈরি ও পরিচালনা</span>
                     </button>
                   </div>
                   <select
@@ -1042,12 +1153,14 @@ export default function AdminProductsPage() {
                       type="button"
                       onClick={() => {
                         setQuickCatTarget("create");
+                        setCatActionError("");
+                        setCatSearch("");
                         setIsQuickCatModalOpen(true);
                       }}
                       className="text-[11px] font-bold text-brand-teal hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       <Plus className="w-3 h-3" />
-                      <span>নতুন ক্যাটাগরি তৈরি</span>
+                      <span>ক্যাটাগরি তৈরি ও পরিচালনা</span>
                     </button>
                   </div>
                   <select
@@ -1350,12 +1463,14 @@ export default function AdminProductsPage() {
                       type="button"
                       onClick={() => {
                         setQuickBrandTarget("edit");
+                        setBrandActionError("");
+                        setBrandSearch("");
                         setIsQuickBrandModalOpen(true);
                       }}
                       className="text-[11px] font-bold text-brand-teal hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       <Plus className="w-3 h-3" />
-                      <span>নতুন ব্র্যান্ড</span>
+                      <span>ব্র্যান্ড তৈরি ও পরিচালনা</span>
                     </button>
                   </div>
                   <select
@@ -1382,12 +1497,14 @@ export default function AdminProductsPage() {
                       type="button"
                       onClick={() => {
                         setQuickCatTarget("edit");
+                        setCatActionError("");
+                        setCatSearch("");
                         setIsQuickCatModalOpen(true);
                       }}
                       className="text-[11px] font-bold text-brand-teal hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       <Plus className="w-3 h-3" />
-                      <span>নতুন ক্যাটাগরি</span>
+                      <span>ক্যাটাগরি তৈরি ও পরিচালনা</span>
                     </button>
                   </div>
                   <select
@@ -1706,20 +1823,22 @@ export default function AdminProductsPage() {
         </div>
       )}
 
-      {/* QUICK CREATE BRAND MODAL */}
+      {/* BRAND MANAGEMENT & CREATE MODAL */}
       {isQuickBrandModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm border border-slate-200 p-5 space-y-4 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 p-5 space-y-4 animate-in fade-in zoom-in-95 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 flex-shrink-0">
               <h3 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
                 <Tag className="w-4 h-4 text-brand-teal" />
-                <span>নতুন ব্র্যান্ড যোগ করুন</span>
+                <span>ব্র্যান্ড পরিচালনা ও তৈরি</span>
               </h3>
               <button
                 type="button"
                 onClick={() => {
                   setIsQuickBrandModalOpen(false);
                   setQuickBrandName("");
+                  setBrandActionError("");
+                  setBrandSearch("");
                 }}
                 className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer"
               >
@@ -1727,11 +1846,26 @@ export default function AdminProductsPage() {
               </button>
             </div>
 
-            <form onSubmit={handleQuickCreateBrand} className="space-y-3 text-xs">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  ব্র্যান্ডের নাম *
-                </label>
+            {brandActionError && (
+              <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs flex items-start gap-2 flex-shrink-0 animate-in fade-in">
+                <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
+                <div className="flex-1 font-medium">{brandActionError}</div>
+                <button
+                  type="button"
+                  onClick={() => setBrandActionError("")}
+                  className="text-rose-400 hover:text-rose-600 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
+            {/* Quick Add Form */}
+            <form onSubmit={handleQuickCreateBrand} className="space-y-2 text-xs flex-shrink-0 bg-slate-50/70 p-3 rounded-xl border border-slate-200/80">
+              <label className="block font-semibold text-slate-700">
+                নতুন ব্র্যান্ড যোগ করুন
+              </label>
+              <div className="flex gap-2">
                 <input
                   type="text"
                   required
@@ -1739,42 +1873,126 @@ export default function AdminProductsPage() {
                   value={quickBrandName}
                   onChange={(e) => setQuickBrandName(e.target.value)}
                   placeholder="যেমন: American Tourister, Delsey, VIP..."
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none"
+                  className="flex-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none text-xs"
                 />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsQuickBrandModalOpen(false);
-                    setQuickBrandName("");
-                  }}
-                  className="px-3.5 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold cursor-pointer"
-                >
-                  বাতিল
-                </button>
                 <button
                   type="submit"
                   disabled={submittingQuickBrand}
-                  className="px-4 py-1.5 rounded-xl bg-brand-teal hover:bg-brand-tealLight text-white font-bold disabled:opacity-50 transition-colors shadow-xs cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-xl bg-brand-teal hover:bg-brand-tealLight text-white font-bold disabled:opacity-50 transition-colors shadow-xs cursor-pointer flex-shrink-0 text-xs flex items-center gap-1"
                 >
-                  {submittingQuickBrand ? "তৈরি হচ্ছে..." : "ব্র্যান্ড সংরক্ষণ করুন"}
+                  {submittingQuickBrand ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                  <span>যোগ করুন</span>
                 </button>
               </div>
             </form>
+
+            {/* Existing Brands List with Delete Action */}
+            <div className="flex-1 overflow-hidden flex flex-col space-y-2 min-h-0">
+              <div className="flex items-center justify-between text-xs flex-shrink-0 pt-1">
+                <span className="font-semibold text-slate-700">
+                  বিদ্যমান ব্র্যান্ডসমূহ ({toBengaliNumber(brands.length)}টি)
+                </span>
+                {brands.length > 4 && (
+                  <div className="relative w-36">
+                    <input
+                      type="text"
+                      placeholder="খুঁজুন..."
+                      value={brandSearch}
+                      onChange={(e) => setBrandSearch(e.target.value)}
+                      className="w-full pl-6 pr-2 py-0.5 text-[11px] rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-brand-teal"
+                    />
+                    <Search className="w-3 h-3 text-slate-400 absolute left-1.5 top-1.5" />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 max-h-60">
+                {brands.length === 0 ? (
+                  <div className="text-center py-6 text-slate-400 text-xs">
+                    কোনো ব্র্যান্ড পাওয়া যায়নি।
+                  </div>
+                ) : (
+                  brands
+                    .filter((b) =>
+                      brandSearch
+                        ? b.name.toLowerCase().includes(brandSearch.toLowerCase())
+                        : true
+                    )
+                    .map((b) => {
+                      const count = getBrandProductCount(b._id);
+                      return (
+                        <div
+                          key={b._id}
+                          className="flex items-center justify-between p-2 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/80 transition-all text-xs"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="w-6 h-6 rounded-lg bg-teal-50 text-brand-teal font-bold text-[11px] flex items-center justify-center flex-shrink-0">
+                              {b.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-semibold text-slate-800 truncate">
+                                {b.name}
+                              </div>
+                              <div className="text-[10px]">
+                                {count > 0 ? (
+                                  <span className="text-amber-600 font-medium">
+                                    {toBengaliNumber(count)} টি পণ্য যুক্ত
+                                  </span>
+                                ) : (
+                                  <span className="text-emerald-600 font-medium">
+                                    কোনো পণ্য নেই (ডিলিটযোগ্য)
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteBrand(b._id, b.name)}
+                            disabled={deletingBrandId === b._id}
+                            title="ব্র্যান্ডটি ডিলিট করুন"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer flex-shrink-0 disabled:opacity-50"
+                          >
+                            {deletingBrandId === b._id ? (
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin text-rose-500" />
+                            ) : (
+                              <Trash2 className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        </div>
+                      );
+                    })
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2 border-t border-slate-100 flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsQuickBrandModalOpen(false);
+                  setQuickBrandName("");
+                  setBrandActionError("");
+                  setBrandSearch("");
+                }}
+                className="px-4 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs cursor-pointer"
+              >
+                বন্ধ করুন
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* QUICK CREATE CATEGORY MODAL */}
+      {/* CATEGORY MANAGEMENT & CREATE MODAL */}
       {isQuickCatModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm border border-slate-200 p-5 space-y-4 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 p-5 space-y-4 animate-in fade-in zoom-in-95 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 flex-shrink-0">
               <h3 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
                 <FolderPlus className="w-4 h-4 text-brand-teal" />
-                <span>নতুন ক্যাটাগরি যোগ করুন</span>
+                <span>ক্যাটাগরি পরিচালনা ও তৈরি</span>
               </h3>
               <button
                 type="button"
@@ -1782,6 +2000,8 @@ export default function AdminProductsPage() {
                   setIsQuickCatModalOpen(false);
                   setQuickCatNameBangla("");
                   setQuickCatNameEnglish("");
+                  setCatActionError("");
+                  setCatSearch("");
                 }}
                 className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer"
               >
@@ -1789,56 +2009,157 @@ export default function AdminProductsPage() {
               </button>
             </div>
 
-            <form onSubmit={handleQuickCreateCategory} className="space-y-3 text-xs">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  ক্যাটাগরির নাম (বাংলা) *
-                </label>
+            {catActionError && (
+              <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs flex items-start gap-2 flex-shrink-0 animate-in fade-in">
+                <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
+                <div className="flex-1 font-medium">{catActionError}</div>
+                <button
+                  type="button"
+                  onClick={() => setCatActionError("")}
+                  className="text-rose-400 hover:text-rose-600 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
+            {/* Quick Add Form */}
+            <form onSubmit={handleQuickCreateCategory} className="space-y-2 text-xs flex-shrink-0 bg-slate-50/70 p-3 rounded-xl border border-slate-200/80">
+              <label className="block font-semibold text-slate-700">
+                নতুন ক্যাটাগরি যোগ করুন
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <input
                   type="text"
                   required
                   autoFocus
                   value={quickCatNameBangla}
                   onChange={(e) => setQuickCatNameBangla(e.target.value)}
-                  placeholder="যেমন: ট্রাভেল ব্যাকপ্যাক, ডাফল ব্যাগ..."
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none"
+                  placeholder="বাংলা নাম * (যেমন: ট্রাভেল ব্যাগ)"
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none text-xs"
                 />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  ক্যাটাগরির নাম (ইংরেজি - ঐচ্ছিক)
-                </label>
                 <input
                   type="text"
                   value={quickCatNameEnglish}
                   onChange={(e) => setQuickCatNameEnglish(e.target.value)}
-                  placeholder="e.g. Travel Backpack, Duffle Bag"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none"
+                  placeholder="ইংরেজি নাম (ঐচ্ছিক)"
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-brand-teal focus:outline-none text-xs"
                 />
               </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsQuickCatModalOpen(false);
-                    setQuickCatNameBangla("");
-                    setQuickCatNameEnglish("");
-                  }}
-                  className="px-3.5 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold cursor-pointer"
-                >
-                  বাতিল
-                </button>
+              <div className="flex justify-end">
                 <button
                   type="submit"
                   disabled={submittingQuickCat}
-                  className="px-4 py-1.5 rounded-xl bg-brand-teal hover:bg-brand-tealLight text-white font-bold disabled:opacity-50 transition-colors shadow-xs cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-xl bg-brand-teal hover:bg-brand-tealLight text-white font-bold disabled:opacity-50 transition-colors shadow-xs cursor-pointer text-xs flex items-center gap-1"
                 >
-                  {submittingQuickCat ? "তৈরি হচ্ছে..." : "ক্যাটাগরি সংরক্ষণ করুন"}
+                  {submittingQuickCat ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                  <span>ক্যাটাগরি সংরক্ষণ করুন</span>
                 </button>
               </div>
             </form>
+
+            {/* Existing Categories List with Delete Action */}
+            <div className="flex-1 overflow-hidden flex flex-col space-y-2 min-h-0">
+              <div className="flex items-center justify-between text-xs flex-shrink-0 pt-1">
+                <span className="font-semibold text-slate-700">
+                  বিদ্যমান ক্যাটাগরিসমূহ ({toBengaliNumber(categories.length)}টি)
+                </span>
+                {categories.length > 4 && (
+                  <div className="relative w-36">
+                    <input
+                      type="text"
+                      placeholder="খুঁজুন..."
+                      value={catSearch}
+                      onChange={(e) => setCatSearch(e.target.value)}
+                      className="w-full pl-6 pr-2 py-0.5 text-[11px] rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-brand-teal"
+                    />
+                    <Search className="w-3 h-3 text-slate-400 absolute left-1.5 top-1.5" />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 max-h-60">
+                {categories.length === 0 ? (
+                  <div className="text-center py-6 text-slate-400 text-xs">
+                    কোনো ক্যাটাগরি পাওয়া যায়নি।
+                  </div>
+                ) : (
+                  categories
+                    .filter((c) =>
+                      catSearch
+                        ? c.nameBangla.toLowerCase().includes(catSearch.toLowerCase()) ||
+                          (c.nameEnglish && c.nameEnglish.toLowerCase().includes(catSearch.toLowerCase()))
+                        : true
+                    )
+                    .map((c) => {
+                      const count = getCatProductCount(c._id);
+                      return (
+                        <div
+                          key={c._id}
+                          className="flex items-center justify-between p-2 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/80 transition-all text-xs"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="w-6 h-6 rounded-lg bg-teal-50 text-brand-teal font-bold text-[11px] flex items-center justify-center flex-shrink-0">
+                              {c.nameBangla.charAt(0)}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-semibold text-slate-800 truncate">
+                                {c.nameBangla}{" "}
+                                {c.nameEnglish && (
+                                  <span className="text-slate-400 font-normal text-[11px]">
+                                    ({c.nameEnglish})
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[10px]">
+                                {count > 0 ? (
+                                  <span className="text-amber-600 font-medium">
+                                    {toBengaliNumber(count)} টি পণ্য যুক্ত
+                                  </span>
+                                ) : (
+                                  <span className="text-emerald-600 font-medium">
+                                    কোনো পণ্য নেই (ডিলিটযোগ্য)
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCategory(c._id, c.nameBangla)}
+                            disabled={deletingCatId === c._id}
+                            title="ক্যাটাগরিটি ডিলিট করুন"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer flex-shrink-0 disabled:opacity-50"
+                          >
+                            {deletingCatId === c._id ? (
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin text-rose-500" />
+                            ) : (
+                              <Trash2 className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        </div>
+                      );
+                    })
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2 border-t border-slate-100 flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsQuickCatModalOpen(false);
+                  setQuickCatNameBangla("");
+                  setQuickCatNameEnglish("");
+                  setCatActionError("");
+                  setCatSearch("");
+                }}
+                className="px-4 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs cursor-pointer"
+              >
+                বন্ধ করুন
+              </button>
+            </div>
           </div>
         </div>
       )}
