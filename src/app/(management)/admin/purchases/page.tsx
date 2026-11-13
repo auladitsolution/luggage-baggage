@@ -62,23 +62,46 @@ export default function AdminPurchasesPage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [purRes, supRes, invRes] = await Promise.all([
+      const [purRes, supRes, prodRes, invRes] = await Promise.all([
         fetch(`/api/admin/purchases${selectedSupplierFilter ? `?supplierId=${selectedSupplierFilter}` : ""}`),
         fetch("/api/admin/suppliers"),
+        fetch("/api/admin/products"),
         fetch("/api/admin/inventory"),
       ]);
 
-      const [purData, supData, invData] = await Promise.all([
-        purRes.json(),
-        supRes.json(),
-        invRes.json(),
+      const [purData, supData, prodData, invData] = await Promise.all([
+        purRes.json().catch(() => ({ purchases: [] })),
+        supRes.json().catch(() => ({ suppliers: [] })),
+        prodRes.json().catch(() => ({ products: [] })),
+        invRes.json().catch(() => ({ items: [] })),
       ]);
 
       if (purData.purchases) setPurchases(purData.purchases);
       if (supData.suppliers) setSuppliers(supData.suppliers);
 
-      if (invData.items) {
-        const variantOptions = invData.items.map((i: any) => ({
+      let variantOptions: ProductVariantOption[] = [];
+
+      // 1. Primary: Load from all catalog products & their variants
+      if (prodData.products && Array.isArray(prodData.products) && prodData.products.length > 0) {
+        for (const p of prodData.products) {
+          const pName = p.nameBangla || p.nameEnglish || "অজানা পণ্য";
+          for (const v of p.variants || []) {
+            variantOptions.push({
+              variantId: String(v._id),
+              productId: String(p._id),
+              productName: pName,
+              variantName: v.nameVariant || "ডিফল্ট",
+              sku: v.sku || "",
+              barcode: v.barcode || "",
+              purchaseCostPoisha: v.purchaseCostPoisha || 0,
+            });
+          }
+        }
+      }
+
+      // 2. Secondary fallback: Load from inventory balances if catalog products response was empty
+      if (variantOptions.length === 0 && invData?.items && Array.isArray(invData.items)) {
+        variantOptions = invData.items.map((i: any) => ({
           variantId: i.variantId,
           productId: i.productId,
           productName: i.productName,
@@ -87,8 +110,19 @@ export default function AdminPurchasesPage() {
           barcode: i.barcode,
           purchaseCostPoisha: i.purchaseCostPoisha || 0,
         }));
-        setVariants(variantOptions);
       }
+
+      // Deduplicate variants by variantId
+      const uniqueVariants: ProductVariantOption[] = [];
+      const seen = new Set<string>();
+      for (const vo of variantOptions) {
+        if (!seen.has(vo.variantId)) {
+          seen.add(vo.variantId);
+          uniqueVariants.push(vo);
+        }
+      }
+
+      setVariants(uniqueVariants);
     } catch (err) {
       console.error("Failed to load purchases data:", err);
     } finally {
@@ -101,7 +135,11 @@ export default function AdminPurchasesPage() {
   }, [selectedSupplierFilter]);
 
   const handleAddItemRow = () => {
-    if (variants.length === 0) return;
+    if (variants.length === 0) {
+      setCreateError("কোনো পণ্য বা ভ্যারিয়েন্ট পাওয়া যায়নি। চালানে আইটেম যোগ করার পূর্বে পণ্য তালিকায় পণ্য যুক্ত করুন।");
+      return;
+    }
+    setCreateError("");
     const first = variants[0];
     setItems((prev) => [
       ...prev,
@@ -158,6 +196,21 @@ export default function AdminPurchasesPage() {
       handleAddItemRow();
     }
   };
+
+  useEffect(() => {
+    if (isAddModalOpen && items.length === 0 && variants.length > 0) {
+      const first = variants[0];
+      setItems([
+        {
+          variantId: first.variantId,
+          productName: first.productName,
+          variantName: first.variantName,
+          quantityReceived: 10,
+          unitCostBDT: String((first.purchaseCostPoisha || 300000) / 100),
+        },
+      ]);
+    }
+  }, [isAddModalOpen, variants]);
 
   const handleCreatePurchase = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -508,6 +561,32 @@ export default function AdminPurchasesPage() {
                 </div>
 
                 <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                  {items.length === 0 && (
+                    <div className="p-4 bg-slate-50 border border-dashed border-slate-300 rounded-xl text-center">
+                      {variants.length === 0 ? (
+                        <div className="space-y-2">
+                          <p className="text-xs text-amber-700 font-semibold">
+                            সিস্টেমে কোনো পণ্য বা ভ্যারিয়েন্ট পাওয়া যায়নি।
+                          </p>
+                          <p className="text-[11px] text-slate-500">
+                            চালানে আইটেম যুক্ত করতে প্রথমে প্রোডাক্ট ক্যাটালগে পণ্য যুক্ত করুন।
+                          </p>
+                          <Link
+                            href="/admin/products"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-700 transition shadow-sm mt-1"
+                          >
+                            <PackagePlus className="w-3.5 h-3.5" />
+                            পণ্য ক্যাটালগে নতুন পণ্য যোগ করুন
+                          </Link>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-slate-500">
+                          কোনো আইটেম যোগ করা হয়নি। উপরের &quot;+ আরও আইটেম যোগ করুন&quot; বাটনে ক্লিক করে পণ্য নির্বাচন করুন।
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   {items.map((item, idx) => (
                     <div
                       key={idx}
