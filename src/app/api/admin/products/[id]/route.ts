@@ -21,7 +21,7 @@ export async function GET(
       const store = getMockStore();
       const product = store.products.find((p) => p._id === id || p.slug === id);
       if (!product) {
-        return NextResponse.json({ error: "পণ্য পাওয়া যায়নি" }, { status: 404 });
+        return NextResponse.json({ error: "পণ্য পাওয়া যায়নি" }, { status: 404 });
       }
 
       const variants = store.variants
@@ -51,7 +51,7 @@ export async function GET(
       .lean();
 
     if (!product) {
-      return NextResponse.json({ error: "পণ্য পাওয়া যায়নি" }, { status: 404 });
+      return NextResponse.json({ error: "পণ্য পাওয়া যায়নি" }, { status: 404 });
     }
 
     const variants = await ProductVariant.find({ productId: product._id }).lean();
@@ -72,7 +72,7 @@ export async function GET(
       product: { ...product, variants: variantsWithStock },
     });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || "পণ্য লোড করতে সমস্যা হয়েছে" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "পণ্য লোড করতে সমস্যা হয়েছে" }, { status: 500 });
   }
 }
 
@@ -105,7 +105,7 @@ export async function PUT(
       const store = getMockStore();
       const product = store.products.find((p) => p._id === id || p.slug === id);
       if (!product) {
-        return NextResponse.json({ error: "পণ্য পাওয়া যায়নি" }, { status: 404 });
+        return NextResponse.json({ error: "পণ্য পাওয়া যায়নি" }, { status: 404 });
       }
 
       const brand = store.brands.find((b) => b._id === brandId || b.slug === brandId) || product.brandId;
@@ -179,7 +179,7 @@ export async function PUT(
             productId: product._id,
             sku,
             barcode,
-            nameVariant: v.nameVariant || "ভ্যারিয়েন্ট",
+            nameVariant: v.nameVariant || "ভ্যারিয়েন্ট",
             size: v.size || "24 Inch",
             color: v.color || "কালো",
             weightKg: 2.5,
@@ -208,7 +208,7 @@ export async function PUT(
 
       return NextResponse.json({
         success: true,
-        message: "পণ্য ও ভ্যারিয়েন্ট সফলভাবে আপডেট করা হয়েছে।",
+        message: "পণ্য ও ভ্যারিয়েন্ট সফলভাবে আপডেট করা হয়েছে।",
         product: {
           ...product,
           variants: updatedMockVariants,
@@ -222,7 +222,7 @@ export async function PUT(
 
     let product = await Product.findOne(query);
     if (!product) {
-      return NextResponse.json({ error: "পণ্য পাওয়া যায়নি" }, { status: 404 });
+      return NextResponse.json({ error: "পণ্য পাওয়া যায়নি" }, { status: 404 });
     }
 
     // Update product fields
@@ -308,7 +308,7 @@ export async function PUT(
             productId: product._id,
             sku,
             barcode,
-            nameVariant: v.nameVariant || `${v.size || ""} ${v.color || ""}`.trim() || "ভ্যারিয়েন্ট",
+            nameVariant: v.nameVariant || `${v.size || ""} ${v.color || ""}`.trim() || "ভ্যারিয়েন্ট",
             size: v.size || "24 Inch",
             color: v.color || "কালো",
             weightKg: 2.5,
@@ -340,14 +340,14 @@ export async function PUT(
 
     return NextResponse.json({
       success: true,
-      message: "পণ্য ও ভ্যারিয়েন্ট সফলভাবে আপডেট করা হয়েছে।",
+      message: "পণ্য ও ভ্যারিয়েন্ট সফলভাবে আপডেট করা হয়েছে।",
       product: {
         ...populatedProduct,
         variants: updatedVariants,
       },
     });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || "পণ্য আপডেট করতে সমস্যা হয়েছে" }, { status: 403 });
+    return NextResponse.json({ error: error.message || "পণ্য আপডেট করতে সমস্যা হয়েছে" }, { status: 403 });
   }
 }
 
@@ -368,17 +368,19 @@ export async function DELETE(
       const store = getMockStore();
       const product = store.products.find((p) => p._id === id || p.slug === id);
       if (!product) {
-        return NextResponse.json({ error: "পণ্য পাওয়া যায়নি" }, { status: 404 });
+        return NextResponse.json({ error: "পণ্য পাওয়া যায়নি" }, { status: 404 });
       }
 
       if (permanent) {
         store.products = store.products.filter((p) => p._id !== product._id);
         store.variants = store.variants.filter((v) => v.productId !== product._id);
         store.inventoryBalances = store.inventoryBalances.filter((b) => b.productId !== product._id);
-        return NextResponse.json({ success: true, message: "পণ্য স্থায়ীভাবে মুছে ফেলা হয়েছে।" });
+        return NextResponse.json({ success: true, message: "পণ্য স্থায়ীভাবে মুছে ফেলা হয়েছে।" });
       } else {
+        // Soft delete mock — InventoryBalance সরিয়ে দাও
         product.status = "archived";
-        return NextResponse.json({ success: true, message: "পণ্য সফলভাবে আর্কাইভ করা হয়েছে।" });
+        store.inventoryBalances = store.inventoryBalances.filter((b) => b.productId !== product._id);
+        return NextResponse.json({ success: true, message: "পণ্য সফলভাবে আর্কাইভ করা হয়েছে।" });
       }
     }
 
@@ -388,7 +390,7 @@ export async function DELETE(
 
     const product = await Product.findOne(query);
     if (!product) {
-      return NextResponse.json({ error: "পণ্য পাওয়া যায়নি" }, { status: 404 });
+      return NextResponse.json({ error: "পণ্য পাওয়া যায়নি" }, { status: 404 });
     }
 
     if (permanent) {
@@ -404,11 +406,13 @@ export async function DELETE(
 
       if (hasSales) {
         // Safe fallback: Archive instead of breaking audit history
+        // InventoryBalance মুছে দাও — orphan record এড়াতে
         await Product.updateOne({ _id: product._id }, { $set: { status: "archived" } });
         await ProductVariant.updateMany({ productId: product._id }, { $set: { status: "inactive" } });
+        await InventoryBalance.deleteMany({ productId: product._id });
         return NextResponse.json({
           success: true,
-          message: "পণ্যটির পূর্বের বিক্রয় রেকর্ড থাকায় অডিট সুরক্ষার্থে এটিকে নিরাপদে আর্কাইভ করা হয়েছে।",
+          message: "পণ্যটির পূর্বের বিক্রয় রেকর্ড থাকায় অডিট সুরক্ষার্থে এটিকে নিরাপদে আর্কাইভ করা হয়েছে।",
         });
       }
 
@@ -419,17 +423,19 @@ export async function DELETE(
 
       return NextResponse.json({
         success: true,
-        message: "পণ্য এবং এর সকল ভ্যারিয়েন্ট ডাটাবেস থেকে স্থায়ীভাবে মুছে ফেলা হয়েছে।",
+        message: "পণ্য এবং এর সকল ভ্যারিয়েন্ট ডাটাবেস থেকে স্থায়ীভাবে মুছে ফেলা হয়েছে।",
       });
     }
 
-    // Soft delete (Archive)
+    // ✅ পদ্ধতি ১ — Soft delete (Archive) + Cascade InventoryBalance cleanup
+    // পণ্য আর্কাইভ হলে InventoryBalance মুছে দাও যাতে orphan record না থাকে
     await Product.updateOne({ _id: product._id }, { $set: { status: "archived" } });
     await ProductVariant.updateMany({ productId: product._id }, { $set: { status: "inactive" } });
+    await InventoryBalance.deleteMany({ productId: product._id });
 
     return NextResponse.json({
       success: true,
-      message: "পণ্য সফলভাবে আর্কাইভ করা হয়েছে।",
+      message: "পণ্য সফলভাবে আর্কাইভ করা হয়েছে।",
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "পণ্য ডিলিট করার অনুমতি নেই" }, { status: 403 });

@@ -126,11 +126,10 @@ export default function BarcodePrintPage({
           <button
             key={v._id}
             onClick={() => setSelectedVariantId(v._id)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-              selectedVariant?._id === v._id
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${selectedVariant?._id === v._id
                 ? "bg-brand-navy text-white shadow-xs"
                 : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
-            }`}
+              }`}
           >
             {v.nameVariant} ({new Intl.NumberFormat("en-US").format(v.retailPricePoisha / 100)} TK)
           </button>

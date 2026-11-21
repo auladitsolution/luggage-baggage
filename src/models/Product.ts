@@ -90,6 +90,19 @@ ProductSchema.index({ status: 1 });
 ProductSchema.index({ isFeatured: 1 });
 ProductSchema.index({ createdAt: -1 });
 
+// ✅ পদ্ধতি ২ — Mongoose Middleware: Product hard-delete হলে স্বয়ংক্রিয়ভাবে
+// ProductVariant এবং InventoryBalance মুছে যাবে (Cascade Delete Safety Net)
+ProductSchema.pre("deleteOne", { document: true, query: false }, async function () {
+  const productId = this._id;
+  try {
+    const ProductVariant = mongoose.model("ProductVariant");
+    const InventoryBalance = mongoose.model("InventoryBalance");
+    await ProductVariant.deleteMany({ productId });
+    await InventoryBalance.deleteMany({ productId });
+  } catch {
+    // Model হয়তো এখনো register হয়নি — API-তে explicit delete আছে তাই নিরাপদ
+  }
+});
+
 export const Product: Model<IProductDocument> =
   mongoose.models.Product || mongoose.model<IProductDocument>("Product", ProductSchema);
-

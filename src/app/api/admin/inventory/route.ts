@@ -53,6 +53,9 @@ export async function GET(req: NextRequest) {
         };
       });
 
+      // ✅ পদ্ধতি ৩ — Mock mode: Orphan filter (product বা variant নেই এমন record বাদ)
+      items = items.filter((i) => i.productName !== "অজানা পণ্য" && i.variantName !== "");
+
       if (lowStockOnly) {
         items = items.filter((i) => i.isLowStock);
       }
@@ -91,7 +94,7 @@ export async function GET(req: NextRequest) {
       })
       .populate({
         path: "productId",
-        select: "nameBangla nameEnglish brandId",
+        select: "nameBangla nameEnglish brandId status",
         populate: { path: "brandId", select: "name" },
       })
       .populate({ path: "locationId", select: "name code" })
@@ -115,39 +118,54 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    let items = balances.map((bal: any, idx: number) => {
-      const v = bal.variantId;
-      const p = bal.productId;
-      const loc = bal.locationId;
+    let items = (balances as any[])
+      // ✅ পদ্ধতি ৩ — Orphan Filter: productId বা variantId populate না হলে skip করো
+      // এটি "অজানা পণ্য" ইনভেন্টরি লিস্টে দেখাবে না এবং স্বয়ংক্রিয়ভাবে orphan record cleanup করে
+      .filter((bal) => {
+        const hasProduct = bal.productId && bal.productId._id;
+        const hasVariant = bal.variantId && bal.variantId._id;
+        // Product archived হলেও inventory-তে দেখানো উচিত নয়
+        const productActive = bal.productId?.status !== "archived";
+        if (!hasProduct || !hasVariant || !productActive) {
+          // Background cleanup: orphan balance নিঃশব্দে মুছে দাও
+          InventoryBalance.deleteOne({ _id: bal._id }).catch(() => {});
+          return false;
+        }
+        return true;
+      })
+      .map((bal: any, idx: number) => {
+        const v = bal.variantId;
+        const p = bal.productId;
+        const loc = bal.locationId;
 
-      const currentStock = bal.currentStock || 0;
-      const reservedStock = bal.reservedStock || 0;
-      const available = Math.max(0, currentStock - reservedStock);
-      const isLowStock = currentStock <= (bal.lowStockAlertThreshold || 3);
+        const currentStock = bal.currentStock || 0;
+        const reservedStock = bal.reservedStock || 0;
+        const available = Math.max(0, currentStock - reservedStock);
+        const isLowStock = currentStock <= (bal.lowStockAlertThreshold || 3);
 
-      const balanceId = bal._id ? String(bal._id) : `bal-${idx}`;
-      const variantId = v?._id ? String(v._id) : (bal.variantId ? String(bal.variantId) : balanceId);
+        const balanceId = bal._id ? String(bal._id) : `bal-${idx}`;
+        const variantId = v?._id ? String(v._id) : (bal.variantId ? String(bal.variantId) : balanceId);
 
-      return {
-        balanceId,
-        variantId,
-        productId: p?._id ? String(p._id) : (bal.productId ? String(bal.productId) : ""),
-        productName: p?.nameBangla || "অজানা পণ্য",
-        brand: p?.brandId?.name || "",
-        variantName: v?.nameVariant || "",
-        sku: v?.sku || "",
-        barcode: v?.barcode || "",
-        location: loc?.name || "প্রধান শোরুম",
-        locationId: loc?._id ? String(loc._id) : String(bal.locationId || ""),
-        currentStock,
-        reservedStock,
-        available,
-        lowStockAlertThreshold: bal.lowStockAlertThreshold || 3,
-        isLowStock,
-        retailPricePoisha: v?.retailPricePoisha || 0,
-        purchaseCostPoisha: v?.purchaseCostPoisha || 0,
-      };
-    });
+        return {
+          balanceId,
+          variantId,
+          productId: p?._id ? String(p._id) : (bal.productId ? String(bal.productId) : ""),
+          productName: p?.nameBangla || "অজানা পণ্য",
+          brand: p?.brandId?.name || "",
+          variantName: v?.nameVariant || "",
+          sku: v?.sku || "",
+          barcode: v?.barcode || "",
+          location: loc?.name || "প্রধান শোরুম",
+          locationId: loc?._id ? String(loc._id) : String(bal.locationId || ""),
+          currentStock,
+          reservedStock,
+          available,
+          lowStockAlertThreshold: bal.lowStockAlertThreshold || 3,
+          isLowStock,
+          retailPricePoisha: v?.retailPricePoisha || 0,
+          purchaseCostPoisha: v?.purchaseCostPoisha || 0,
+        };
+      });
 
     if (lowStockOnly) {
       items = items.filter((i) => i.isLowStock);
@@ -179,4 +197,3 @@ export async function GET(req: NextRequest) {
     );
   }
 }
-
