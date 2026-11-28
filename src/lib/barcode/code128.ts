@@ -29,11 +29,13 @@ export function generateBarcodeSVG(text: string, options: {
   barWidth?: number;
   showText?: boolean;
   fontSize?: number;
+  fontWeight?: string | number;
 } = {}): string {
   const height = options.height || 50;
   const barWidth = options.barWidth || 2;
   const showText = options.showText !== false;
   const fontSize = options.fontSize || 12;
+  const fontWeight = options.fontWeight || "700";
 
   if (!text || text.length === 0) {
     return `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="${height}"></svg>`;
@@ -81,7 +83,7 @@ export function generateBarcodeSVG(text: string, options: {
 
   let textSvg = "";
   if (showText) {
-    textSvg = `<text x="${totalWidth / 2}" y="${height + fontSize + 4}" font-family="Courier, monospace, monospace" font-size="${fontSize}" font-weight="700" letter-spacing="1px" text-anchor="middle" fill="#0f172a">${text}</text>`;
+    textSvg = `<text x="${totalWidth / 2}" y="${height + fontSize + 4}" font-family="Courier, monospace, monospace" font-size="${fontSize}" font-weight="${fontWeight}" letter-spacing="1px" text-anchor="middle" fill="#000000">${text}</text>`;
   }
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalWidth} ${totalHeight}" width="100%" height="auto" preserveAspectRatio="xMidYMid meet" style="max-width: 100%; height: auto; display: block;">${rects}${textSvg}</svg>`;

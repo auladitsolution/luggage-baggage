@@ -7,7 +7,7 @@ import { STORE_INFO } from "@/lib/config/storeInfo";
 interface BarcodeLabelProps {
   productName: string;
   variantName: string;
-  sku: string;
+  sku?: string;
   barcode: string;
   retailPricePoisha: number;
   storeName?: string;
@@ -16,7 +16,6 @@ interface BarcodeLabelProps {
 export function BarcodeLabel({
   productName,
   variantName,
-  sku,
   barcode,
   retailPricePoisha,
   storeName = STORE_INFO.name,
@@ -31,10 +30,11 @@ export function BarcodeLabel({
   // Generate responsive Code-128 SVG barcode
   const barcodeSvg = useMemo(() => {
     return generateBarcodeSVG(barcode, {
-      height: 36,
+      height: 26,
       barWidth: 1.8,
       showText: true,
-      fontSize: 10.5,
+      fontSize: 18,
+      fontWeight: "900",
     });
   }, [barcode]);
 
@@ -62,24 +62,24 @@ export function BarcodeLabel({
   // Dynamic font size for MRP line to guarantee it stays strictly on 1 line
   const priceFontSize = useMemo(() => {
     const textLen = `MRP: ${formattedPrice} TK. (VAT Including)`.length;
-    if (textLen <= 26) return 10;
-    if (textLen <= 30) return 9.5;
-    if (textLen <= 34) return 8.8;
-    return 8;
+    if (textLen <= 26) return 11;
+    if (textLen <= 30) return 10.5;
+    if (textLen <= 34) return 9.8;
+    return 9;
   }, [formattedPrice]);
 
   return (
-    <div className="w-[50mm] min-h-[35mm] max-w-[50mm] px-1.5 py-1.5 bg-white border border-slate-300 rounded shadow-xs text-center flex flex-col justify-between items-center font-sans box-border overflow-hidden select-none print:border-none print:p-0 print:m-0 print:shadow-none print:w-[50mm] print:min-h-[35mm]">
+    <div className="w-[50mm] min-h-[35mm] max-w-[50mm] px-1.5 py-1 bg-white border border-slate-300 rounded shadow-xs text-center flex flex-col justify-center gap-0.5 items-center font-sans box-border overflow-hidden select-none print:border-none print:p-0 print:m-0 print:shadow-none print:w-[50mm] print:min-h-[35mm]">
       {/* Store Header - English Only, no Bengali */}
-      <div className="w-full text-[9px] font-bold text-slate-800 tracking-tight leading-tight whitespace-nowrap overflow-hidden text-ellipsis text-center">
+      <div className="w-full text-[13px] font-black text-slate-900 tracking-tight leading-[1.25] whitespace-nowrap overflow-hidden text-ellipsis text-center">
         {cleanStoreName}
       </div>
 
       {/* Product Details Section */}
-      <div className="w-full my-0.5 space-y-0.5">
+      <div className="w-full my-0 space-y-[1px]">
         {/* Product Name in English: 1 line, responsive font size */}
         <div
-          className="w-full font-bold text-slate-900 leading-tight whitespace-nowrap overflow-hidden text-center tracking-tight"
+          className="w-full font-bold text-slate-900 leading-none whitespace-nowrap overflow-hidden text-center tracking-tight"
           style={{
             fontSize: `${nameFontSize}px`,
             letterSpacing: (productName || "").length > 25 ? "-0.25px" : "normal",
@@ -91,26 +91,21 @@ export function BarcodeLabel({
 
         {/* Variant Info (Size / Color) */}
         {variantName && (
-          <div className="w-full text-[8px] text-slate-600 font-medium leading-tight whitespace-nowrap overflow-hidden text-center tracking-tight">
+          <div className="w-full text-[12px] text-slate-900 font-extrabold leading-none whitespace-nowrap overflow-hidden text-center tracking-tight">
             {variantName}
           </div>
         )}
-
-        {/* SKU: Always on 1 line, never cut or broken across lines */}
-        <div className="w-full text-[8.5px] font-mono font-bold text-slate-700 leading-tight whitespace-nowrap overflow-hidden text-center tracking-wide">
-          {sku}
-        </div>
       </div>
 
       {/* Responsive Barcode SVG (fits 100% inside card, zero overflow) */}
       <div
-        className="w-full max-w-full my-0.5 flex justify-center items-center overflow-hidden [&>svg]:w-full [&>svg]:max-w-full [&>svg]:h-auto [&>svg]:block"
+        className="w-full max-w-full my-0 flex justify-center items-center overflow-hidden [&>svg]:w-full [&>svg]:max-w-full [&>svg]:h-auto [&>svg]:block"
         dangerouslySetInnerHTML={{ __html: barcodeSvg }}
       />
 
       {/* Price / MRP - Guaranteed strictly 1 single line in English */}
       <div
-        className="w-full font-black text-slate-900 border-t border-dashed border-slate-300 pt-0.5 leading-tight text-center whitespace-nowrap tracking-tight"
+        className="w-full font-black text-slate-900 border-t border-dashed border-slate-300 pt-0.5 leading-none text-center whitespace-nowrap overflow-hidden tracking-tight"
         style={{ fontSize: `${priceFontSize}px` }}
       >
         MRP: {formattedPrice} TK. (VAT Including)
