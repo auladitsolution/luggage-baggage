@@ -69,17 +69,17 @@ export function BarcodeLabel({
   }, [formattedPrice]);
 
   return (
-    <div className="w-[50mm] min-h-[35mm] max-w-[50mm] px-1.5 py-1 bg-white border border-slate-300 rounded shadow-xs text-center flex flex-col justify-center gap-0.5 items-center font-sans box-border overflow-hidden select-none print:border-none print:p-0 print:m-0 print:shadow-none print:w-[50mm] print:min-h-[35mm]">
+    <div className="w-[50mm] min-h-[35mm] max-w-[50mm] px-1.5 py-1 bg-white border border-slate-300 rounded shadow-xs text-center flex flex-col justify-center gap-1 items-center font-sans box-border overflow-hidden select-none print:border-none print:p-0 print:m-0 print:shadow-none print:w-[50mm] print:min-h-[35mm]">
       {/* Store Header - English Only, no Bengali */}
-      <div className="w-full text-[13px] font-black text-slate-900 tracking-tight leading-[1.25] whitespace-nowrap overflow-hidden text-ellipsis text-center">
+      <div className="w-full text-[13px] font-black text-slate-900 tracking-tight leading-[1.4] whitespace-nowrap overflow-x-hidden text-ellipsis text-center">
         {cleanStoreName}
       </div>
 
       {/* Product Details Section */}
-      <div className="w-full my-0 space-y-[1px]">
+      <div className="w-full my-0 space-y-[2px]">
         {/* Product Name in English: 1 line, responsive font size */}
         <div
-          className="w-full font-bold text-slate-900 leading-none whitespace-nowrap overflow-hidden text-center tracking-tight"
+          className="w-full font-bold text-slate-900 leading-[1.3] whitespace-nowrap overflow-x-hidden text-center tracking-tight"
           style={{
             fontSize: `${nameFontSize}px`,
             letterSpacing: (productName || "").length > 25 ? "-0.25px" : "normal",
@@ -91,7 +91,7 @@ export function BarcodeLabel({
 
         {/* Variant Info (Size / Color) */}
         {variantName && (
-          <div className="w-full text-[12px] text-slate-900 font-extrabold leading-none whitespace-nowrap overflow-hidden text-center tracking-tight">
+          <div className="w-full text-[12px] text-slate-900 font-extrabold leading-[1.3] whitespace-nowrap overflow-x-hidden text-center tracking-tight">
             {variantName}
           </div>
         )}
@@ -105,7 +105,7 @@ export function BarcodeLabel({
 
       {/* Price / MRP - Guaranteed strictly 1 single line in English */}
       <div
-        className="w-full font-black text-slate-900 border-t border-dashed border-slate-300 pt-0.5 leading-none text-center whitespace-nowrap overflow-hidden tracking-tight"
+        className="w-full font-black text-slate-900 border-t border-dashed border-slate-300 pt-0.5 leading-[1.3] text-center whitespace-nowrap overflow-x-hidden tracking-tight"
         style={{ fontSize: `${priceFontSize}px` }}
       >
         MRP: {formattedPrice} TK. (VAT Including)
